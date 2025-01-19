@@ -40,10 +40,37 @@ export const PersonForm = ({ onSubmit }: PersonFormProps) => {
   }, {} as Record<string, Category[]>);
 
   // Define the missing handleSubmit
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    // Call the prop onSubmit with our formData
-    onSubmit(formData);
+
+    try {
+      const response = await fetch("/api/person", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Person saved:", data);
+        alert("Person saved successfully!");
+        setFormData({
+          firstName: "",
+          lastName: "",
+          surname: "",
+          birthDate: undefined,
+          deathDate: undefined,
+          selectedCategories: [],
+        });
+      } else {
+        const error = await response.json();
+        console.error("Error saving person:", error);
+        alert(`Failed to save person: ${error.error}`);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("An unexpected error occurred");
+    }
   }
 
   return (
