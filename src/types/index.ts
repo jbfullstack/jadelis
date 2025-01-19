@@ -11,7 +11,7 @@ export interface SearchData {
 export interface PersonData {
   firstName: string;
   lastName: string;
-  surname?: string;
+  description?: string;
   birthDate: Date | undefined; // Changed from Date | null
   deathDate: Date | undefined; // Changed from Date | null
   selectedCategories: number[];
@@ -21,7 +21,7 @@ export interface Person {
   id: number;
   first_name: string;
   last_name: string;
-  surname?: string;
+  description?: string;
   birth_date: string;
   death_date?: string;
   number: number;

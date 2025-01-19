@@ -26,7 +26,7 @@ export const ResultsTable = ({ results }: ResultsTableProps) => {
       ...results.map((person) =>
         [
           `${person.first_name} ${person.last_name}${
-            person.surname ? ` (${person.surname})` : ""
+            person.description ? ` (${person.description})` : ""
           }`,
           new Date(person.birth_date).toLocaleDateString(),
           person.death_date
@@ -78,7 +78,7 @@ export const ResultsTable = ({ results }: ResultsTableProps) => {
               <tr key={person.id}>
                 <td className="p-2 border">
                   {person.first_name} {person.last_name}
-                  {person.surname && ` (${person.surname})`}
+                  {person.description && ` (${person.description})`}
                 </td>
                 <td className="p-2 border">
                   {new Date(person.birth_date).toLocaleDateString()}

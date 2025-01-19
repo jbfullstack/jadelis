@@ -8,7 +8,7 @@ export async function POST(request: Request) {
     const {
       firstName,
       lastName,
-      surname,
+      description,
       birthDate,
       deathDate,
       selectedCategories,
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     // Step 1: Check for existing persons with the same birth_date (if not forced)
     if (!confirm) {
       const checkQuery = `
-        SELECT id, first_name, last_name, surname, birth_date
+        SELECT id, first_name, last_name, description, birth_date
         FROM persons
         WHERE birth_date = $1;
       `;
@@ -41,14 +41,14 @@ export async function POST(request: Request) {
 
     // Step 3: Insert the new person into the database
     const personQuery = `
-      INSERT INTO persons (first_name, last_name, surname, birth_date, death_date, number)
+      INSERT INTO persons (first_name, last_name, description, birth_date, death_date, number)
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING id;
     `;
     const personValues = [
       firstName,
       lastName,
-      surname,
+      description,
       new Date(birthDate),
       deathDate ? new Date(deathDate) : null,
       lifePathNumber,

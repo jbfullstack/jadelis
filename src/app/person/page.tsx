@@ -1,4 +1,3 @@
-// src/app/person/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -9,6 +8,9 @@ import type { SearchData, Person } from "@/types";
 
 export default function PersonPage() {
   const [searchResults, setSearchResults] = useState<Person[] | null>(null);
+
+  const [isPersonFormExpanded, setPersonFormExpanded] = useState(true); // For "Enregistrer une personne"
+  const [isSearchFormExpanded, setSearchFormExpanded] = useState(false); // For "Rechercher"
 
   const handleSearch = async (searchData: SearchData) => {
     try {
@@ -70,18 +72,36 @@ export default function PersonPage() {
 
   return (
     <main className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold text-center mb-8">Person Database</h1>
+      <h1 className="text-3xl font-bold text-center mb-8">
+        Life Path Database
+      </h1>
 
       <div className="grid grid-cols-1 gap-8">
+        {/* Section: Enregistrer une personne */}
         <section>
-          <h2 className="text-2xl font-semibold mb-4">Add Person</h2>
-          <PersonForm />
+          <h2
+            className="text-2xl font-semibold mb-4 cursor-pointer select-none flex items-center"
+            onClick={() => setPersonFormExpanded(!isPersonFormExpanded)}
+          >
+            {isPersonFormExpanded ? "▼" : "➤"} Enregistrer une personne
+          </h2>
+          {isPersonFormExpanded && <PersonForm />}
         </section>
 
+        {/* Section: Rechercher */}
         <section>
-          <h2 className="text-2xl font-semibold mb-4">Search</h2>
-          <SearchForm onSearch={handleSearch} />
-          {searchResults && <ResultsTable results={searchResults} />}
+          <h2
+            className="text-2xl font-semibold mb-4 cursor-pointer select-none flex items-center"
+            onClick={() => setSearchFormExpanded(!isSearchFormExpanded)}
+          >
+            {isSearchFormExpanded ? "▼" : "➤"} Rechercher
+          </h2>
+          {isSearchFormExpanded && (
+            <>
+              <SearchForm onSearch={handleSearch} />
+              {searchResults && <ResultsTable results={searchResults} />}
+            </>
+          )}
         </section>
       </div>
     </main>
