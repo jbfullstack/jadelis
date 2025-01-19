@@ -62,7 +62,7 @@ export async function POST(request: Request) {
       const categoryQuery = `
         INSERT INTO person_categories (person_id, category_id)
         VALUES ${selectedCategories
-          .map((_, index) => `($1, $${index + 2})`)
+          .map((_unused: unknown, index: number) => `($1, $${index + 2})`)
           .join(", ")}
       `;
       const categoryValues = [personId, ...selectedCategories];
@@ -72,8 +72,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, personId }, { status: 201 });
   } catch (error) {
     console.error("Error inserting person:", error);
+
+    // Narrow the type of `error` to access its properties
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to save person";
+
     return NextResponse.json(
-      { success: false, error: error.message || "Failed to save person" },
+      { success: false, error: errorMessage },
       { status: 500 }
     );
   }
