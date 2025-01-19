@@ -18,6 +18,8 @@ export const PersonForm = () => {
     Record<string, { id: number; name: string }[]>
   >({});
   const [errors, setErrors] = useState<string[]>([]);
+  const [matches, setMatches] = useState<any[]>([]);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   useEffect(() => {
     async function fetchCategories() {
@@ -39,19 +41,19 @@ export const PersonForm = () => {
   const validateForm = () => {
     const validationErrors: string[] = [];
 
-    // Au moins un des champs (nom, prénom, description) doit être renseigné
+    // At least one of the fields (first name, last name, description) must be filled
     if (!formData.firstName && !formData.lastName && !formData.description) {
       validationErrors.push(
         "Veuillez renseigner au moins un champ parmi Nom, Prénom ou Description."
       );
     }
 
-    // La date de naissance est obligatoire
+    // Birthdate is required
     if (!formData.birthDate) {
       validationErrors.push("La date de naissance est obligatoire.");
     }
 
-    // La date de décès, si renseignée, ne peut pas être avant la date de naissance
+    // Deathdate, if provided, cannot be earlier than birthdate
     if (
       formData.deathDate &&
       formData.birthDate &&
@@ -66,21 +68,81 @@ export const PersonForm = () => {
     return validationErrors.length === 0;
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) {
       return;
     }
 
-    alert("Formulaire validé !");
+    try {
+      const response = await fetch("/api/person", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...formData, confirm: false }),
+      });
+
+      const data = await response.json();
+
+      if (response.status === 409 && data.matches?.length > 0) {
+        setMatches(data.matches);
+        setShowConfirmation(true);
+      } else if (response.ok) {
+        alert("Person saved successfully!");
+        resetForm();
+      } else {
+        alert(`Failed to save person: ${data.error}`);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("An unexpected error occurred");
+    }
+  };
+
+  const handleConfirmSave = async () => {
+    try {
+      const response = await fetch("/api/person", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...formData, confirm: true }),
+      });
+
+      if (response.ok) {
+        alert("Person saved successfully!");
+        resetForm();
+      } else {
+        const data = await response.json();
+        alert(`Failed to save person: ${data.error}`);
+      }
+    } catch (error) {
+      console.error("Error during confirmation save:", error);
+      alert("An unexpected error occurred while saving.");
+    }
+  };
+
+  const handleCancelSave = () => {
+    setShowConfirmation(false);
+    setMatches([]);
+  };
+
+  const resetForm = () => {
+    setFormData({
+      firstName: "",
+      lastName: "",
+      description: "",
+      birthDate: undefined,
+      deathDate: undefined,
+      selectedCategories: [],
+    });
+    setMatches([]);
+    setShowConfirmation(false);
   };
 
   return (
     <div className="space-y-6 mx-auto max-w-4xl px-4 text-white">
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Name Fields */}
         <div className="grid grid-cols-2 gap-6">
-          {/* Nom */}
           <div>
             <label className="block mb-2">Nom</label>
             <input
@@ -94,7 +156,6 @@ export const PersonForm = () => {
             />
           </div>
 
-          {/* Prénom */}
           <div>
             <label className="block mb-2">Prénom</label>
             <input
@@ -109,7 +170,7 @@ export const PersonForm = () => {
           </div>
         </div>
 
-        {/* Description */}
+        {/* Description Field */}
         <div>
           <label className="block mb-2">Description</label>
           <input
@@ -123,8 +184,8 @@ export const PersonForm = () => {
           />
         </div>
 
+        {/* Date Pickers */}
         <div className="grid grid-cols-2 gap-6">
-          {/* Birth Date */}
           <div>
             <label className="block mb-2">Date de naissance</label>
             <Calendar
@@ -141,7 +202,6 @@ export const PersonForm = () => {
             )}
           </div>
 
-          {/* Death Date */}
           <div>
             <label className="block mb-2">Date de décès</label>
             <Calendar
@@ -216,6 +276,37 @@ export const PersonForm = () => {
           Enregistrer la personne
         </button>
       </form>
+
+      {/* Confirmation Section */}
+      {showConfirmation && (
+        <div className="p-4 bg-orange-800 rounded text-white mt-4">
+          <h3 className="font-bold mb-2">
+            Personnes avec la même date de naissance :
+          </h3>
+          <ul className="list-disc pl-5">
+            {matches.map((person) => (
+              <li key={person.id}>
+                {person.first_name} {person.last_name} - {person.description} -{" "}
+                {new Date(person.birth_date).toLocaleDateString()}
+              </li>
+            ))}
+          </ul>
+          <div className="flex justify-end mt-4">
+            <button
+              onClick={handleConfirmSave}
+              className="p-2 bg-green-600 rounded hover:bg-green-700 text-white mr-4"
+            >
+              Save Anyway
+            </button>
+            <button
+              onClick={handleCancelSave}
+              className="p-2 bg-red-600 rounded hover:bg-red-700 text-white"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

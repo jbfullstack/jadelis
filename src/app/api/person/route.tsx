@@ -63,7 +63,7 @@ export async function POST(request: Request) {
         INSERT INTO person_categories (person_id, category_id)
         VALUES ${selectedCategories
           .map((_unused: unknown, index: number) => `($1, $${index + 2})`)
-          .join(", ")}
+          .join(", ")};
       `;
       const categoryValues = [personId, ...selectedCategories];
       await pool.query(categoryQuery, categoryValues);
@@ -73,7 +73,6 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Error inserting person:", error);
 
-    // Narrow the type of `error` to access its properties
     const errorMessage =
       error instanceof Error ? error.message : "Failed to save person";
 
