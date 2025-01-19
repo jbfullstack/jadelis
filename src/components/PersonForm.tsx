@@ -10,11 +10,7 @@ interface Category {
   superCategory?: string;
 }
 
-interface PersonFormProps {
-  onSubmit: (data: PersonData) => void;
-}
-
-export const PersonForm = ({ onSubmit }: PersonFormProps) => {
+export const PersonForm = () => {
   const [formData, setFormData] = useState<PersonData>({
     firstName: "",
     lastName: "",
@@ -28,7 +24,6 @@ export const PersonForm = ({ onSubmit }: PersonFormProps) => {
     { id: 1, name: "pop", superCategory: "musique" },
     { id: 2, name: "metal", superCategory: "musique" },
     { id: 3, name: "mma", superCategory: "sport" },
-    // Add more categories...
   ];
 
   // Group categories by `superCategory`
@@ -39,7 +34,6 @@ export const PersonForm = ({ onSubmit }: PersonFormProps) => {
     return acc;
   }, {} as Record<string, Category[]>);
 
-  // Define the missing handleSubmit
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
 
