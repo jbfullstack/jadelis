@@ -1,4 +1,5 @@
 import { DayPicker, DayPickerProps } from "react-day-picker";
+import { fr } from "date-fns/locale";
 
 export function Calendar({
   className,
@@ -8,6 +9,7 @@ export function Calendar({
 }: DayPickerProps) {
   return (
     <DayPicker
+      locale={fr}
       showOutsideDays={showOutsideDays}
       className={className}
       classNames={{

@@ -27,3 +27,11 @@ export interface Person {
   number: number;
   category_names: string[];
 }
+
+export interface Match {
+  id: number;
+  first_name: string;
+  last_name: string;
+  description?: string; // Optionnel si une description peut être absente
+  birth_date: string; // Ou `Date` selon vos données
+}
