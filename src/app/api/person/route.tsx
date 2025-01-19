@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { pool } from "@/lib/db"; // Adjust the path based on your project structure
+import { pool } from "@/lib/db";
+import { computeLifePathNumber } from "@/utils/numberCalculator";
 
 export async function POST(request: Request) {
   try {
@@ -11,33 +12,68 @@ export async function POST(request: Request) {
       birthDate,
       deathDate,
       selectedCategories,
+      confirm,
     } = body;
 
-    // Insert the data into the database
-    const query = `
-      INSERT INTO persons (first_name, last_name, surname, birth_date, death_date, categories)
+    // Step 1: Check for existing persons with the same birth_date (if not forced)
+    if (!confirm) {
+      const checkQuery = `
+        SELECT id, first_name, last_name, surname, birth_date
+        FROM persons
+        WHERE birth_date = $1;
+      `;
+      const checkResult = await pool.query(checkQuery, [new Date(birthDate)]);
+
+      if (checkResult.rows.length > 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Potential duplicate persons found.",
+            matches: checkResult.rows,
+          },
+          { status: 409 }
+        );
+      }
+    }
+
+    // Step 2: Compute the life path number
+    const lifePathNumber = computeLifePathNumber(birthDate);
+
+    // Step 3: Insert the new person into the database
+    const personQuery = `
+      INSERT INTO persons (first_name, last_name, surname, birth_date, death_date, number)
       VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING *;
+      RETURNING id;
     `;
-    const values = [
+    const personValues = [
       firstName,
       lastName,
       surname,
-      birthDate ? new Date(birthDate) : null,
+      new Date(birthDate),
       deathDate ? new Date(deathDate) : null,
-      JSON.stringify(selectedCategories), // Convert categories array to JSON
+      lifePathNumber,
     ];
 
-    const result = await pool.query(query, values);
+    const personResult = await pool.query(personQuery, personValues);
+    const personId = personResult.rows[0].id;
 
-    return NextResponse.json(
-      { success: true, person: result.rows[0] },
-      { status: 201 }
-    );
+    // Step 4: Insert categories (if any)
+    if (selectedCategories && selectedCategories.length > 0) {
+      const categoryQuery = `
+        INSERT INTO person_categories (person_id, category_id)
+        VALUES ${selectedCategories
+          .map((_, index) => `($1, $${index + 2})`)
+          .join(", ")}
+      `;
+      const categoryValues = [personId, ...selectedCategories];
+      await pool.query(categoryQuery, categoryValues);
+    }
+
+    return NextResponse.json({ success: true, personId }, { status: 201 });
   } catch (error) {
     console.error("Error inserting person:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to save person" },
+      { success: false, error: error.message || "Failed to save person" },
       { status: 500 }
     );
   }
