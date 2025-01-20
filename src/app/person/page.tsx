@@ -5,8 +5,7 @@ import { PersonForm } from "@/components/PersonForm";
 import { SearchForm } from "@/components/SearchForm";
 import { ResultsTable } from "@/components/ResultsTable";
 import type { SearchData, Person } from "@/types";
-
-import { jsPDF } from "jspdf";
+import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 export default function PersonPage() {
@@ -32,24 +31,25 @@ export default function PersonPage() {
         result.first_name || "N/A",
         result.description || "N/A",
         result.birth_date
-          ? new Date(result.birth_date).toLocaleDateString("fr-FR")
+          ? new Date(result.birth_date).toLocaleDateString()
           : "N/A",
         result.death_date
-          ? new Date(result.death_date).toLocaleDateString("fr-FR")
+          ? new Date(result.death_date).toLocaleDateString()
           : "N/A",
-        result.number !== undefined ? result.number.toString() : "N/A",
+        result.number || "N/A",
       ]);
 
       const csvContent = [headers, ...rows]
         .map((row) =>
-          row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
-        ) // Convert all cells to strings, escape quotes, and join with commas
+          row
+            .map((cell) =>
+              typeof cell === "string" ? `"${cell.replace(/"/g, '""')}"` : cell
+            )
+            .join(",")
+        )
         .join("\n");
 
-      // Create a UTF-8 Blob
-      const blob = new Blob([`\uFEFF${csvContent}`], {
-        type: "text/csv;charset=utf-8;",
-      });
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -58,6 +58,7 @@ export default function PersonPage() {
       link.click();
       document.body.removeChild(link);
     } else if (format === "pdf") {
+      // Generate PDF
       const doc = new jsPDF();
       const headers = [
         [
@@ -99,7 +100,7 @@ export default function PersonPage() {
       queryParams.append("numbers", searchData.numbers.join(","));
     }
     if (searchData.birthDays.length > 0) {
-      queryParams.append("birthDays", searchData.birthDays.join(",")); // Add birthDays
+      queryParams.append("birthDays", searchData.birthDays.join(","));
     }
     if (searchData.birthDateRange?.from) {
       queryParams.append(
@@ -183,26 +184,19 @@ export default function PersonPage() {
           </h2>
           {isSearchFormExpanded && (
             <>
-              <SearchForm
-                onSearch={handleSearch}
-                handleDownload={handleDownload}
-              />
+              <SearchForm onSearch={handleSearch} />
               {searchResults && Array.isArray(searchResults) && (
                 <>
-                  <div className="text-white text-xl mb-4">
-                    Nombre de résultats: {searchResults.length}
-                  </div>
-                  {/* Download Buttons */}
-                  <div className="mb-4 text-right">
+                  <div className="flex justify-end space-x-4 my-4">
                     <button
-                      className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 mr-2"
                       onClick={() => handleDownload("csv")}
+                      className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                     >
                       Télécharger CSV
                     </button>
                     <button
-                      className="bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700"
                       onClick={() => handleDownload("pdf")}
+                      className="p-2 bg-red-500 text-white rounded hover:bg-red-600"
                     >
                       Télécharger PDF
                     </button>
