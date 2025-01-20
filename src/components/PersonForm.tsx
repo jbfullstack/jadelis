@@ -12,7 +12,7 @@ export const PersonForm = () => {
   const [formData, setFormData] = useState<PersonData>({
     firstName: "",
     lastName: "",
-    description: "", // Initialisé comme chaîne vide
+    description: "",
     birthDate: undefined,
     deathDate: undefined,
     selectedCategories: [],
@@ -133,6 +133,9 @@ export const PersonForm = () => {
     setShowConfirmation(false);
   };
 
+  const formatDate = (date?: Date): string =>
+    date ? new Date(date).toLocaleDateString() : "Non spécifiée";
+
   return (
     <div className="space-y-6 mx-auto max-w-4xl px-4 text-white">
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -154,20 +157,34 @@ export const PersonForm = () => {
         <FormField
           label="Description"
           placeholder="Description"
-          value={formData.description ?? ""} // Si description est undefined, on affiche une chaîne vide
+          value={formData.description ?? ""}
           onChange={(value) => setFormData({ ...formData, description: value })}
         />
         <div className="grid grid-cols-2 gap-6">
-          <DateField
-            label="Date de naissance"
-            selectedDate={formData.birthDate}
-            onSelect={(date) => setFormData({ ...formData, birthDate: date })}
-          />
-          <DateField
-            label="Date de décès"
-            selectedDate={formData.deathDate}
-            onSelect={(date) => setFormData({ ...formData, deathDate: date })}
-          />
+          <div>
+            <DateField
+              label="Date de naissance"
+              selectedDate={formData.birthDate}
+              onSelect={(date) =>
+                setFormData({ ...formData, birthDate: date || undefined })
+              }
+            />
+            <p className="mt-2 text-sm text-gray-400">
+              Date sélectionnée : {formatDate(formData.birthDate)}
+            </p>
+          </div>
+          <div>
+            <DateField
+              label="Date de décès"
+              selectedDate={formData.deathDate}
+              onSelect={(date) =>
+                setFormData({ ...formData, deathDate: date || undefined })
+              }
+            />
+            <p className="mt-2 text-sm text-gray-400">
+              Date sélectionnée : {formatDate(formData.deathDate)}
+            </p>
+          </div>
         </div>
         <CategorySelector
           categories={categories}

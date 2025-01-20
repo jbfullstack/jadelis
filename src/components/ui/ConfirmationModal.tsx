@@ -35,13 +35,13 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           onClick={onConfirm}
           className="bg-green-600 p-2 rounded text-white hover:bg-green-700"
         >
-          Save Anyway
+          Enregistrer
         </button>
         <button
           onClick={onCancel}
           className="bg-red-600 p-2 rounded text-white hover:bg-red-700"
         >
-          Cancel
+          Annuler
         </button>
       </div>
     </div>

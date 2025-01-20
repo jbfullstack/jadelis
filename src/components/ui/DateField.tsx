@@ -1,28 +1,36 @@
-import { Calendar } from "./calendar";
+import { Calendar } from "./calendar"; // Adjust the import path based on your structure
+import "./calendar.css";
 
-type DateFieldProps = {
+interface DateFieldProps {
   label: string;
   selectedDate: Date | undefined;
   onSelect: (date: Date | undefined) => void;
-};
+}
 
-export const DateField = ({
+export const DateField: React.FC<DateFieldProps> = ({
   label,
   selectedDate,
   onSelect,
-}: DateFieldProps) => (
-  <div>
-    <label className="block mb-2">{label}</label>
-    <Calendar
-      mode="single"
-      selected={selectedDate}
-      onSelect={onSelect}
-      className="border border-gray-600 rounded"
-    />
-    {selectedDate && (
-      <p className="mt-2 text-sm text-gray-400">
-        Date sélectionnée : {new Date(selectedDate).toLocaleDateString()}
-      </p>
-    )}
-  </div>
-);
+}) => {
+  const modifiers = {
+    selected: (date: Date) =>
+      selectedDate ? date.getTime() === selectedDate.getTime() : false,
+  };
+
+  const modifiersClassNames = {
+    selected: "day-selected", // Use the same class for consistency
+  };
+
+  return (
+    <div className="calendar-container">
+      <h3 className="calendar-title">{label}</h3>
+      <Calendar
+        mode="single"
+        selected={selectedDate || undefined}
+        onSelect={onSelect}
+        modifiers={modifiers} // Highlight the selected date
+        modifiersClassNames={modifiersClassNames} // Apply custom class
+      />
+    </div>
+  );
+};

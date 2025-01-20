@@ -8,6 +8,8 @@ import { DateRangeFilter } from "./ui/DateRangeFilter";
 import { CategorySelector } from "./ui/CategorySelector";
 import type { SearchData } from "@/types";
 
+import "./SearchFormStyles.css";
+
 interface SearchFormProps {
   onSearch: (data: SearchData) => void;
 }

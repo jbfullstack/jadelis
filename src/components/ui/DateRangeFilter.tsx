@@ -1,11 +1,10 @@
-import React from "react";
-import { Calendar } from "./calendar";
+import { Calendar } from "./calendar"; // Adjust based on your import path
 import { DateRange } from "react-day-picker";
 
 interface DateRangeFilterProps {
   label: string;
-  range?: DateRange;
-  onChange: (range: DateRange) => void;
+  range: DateRange | undefined;
+  onChange: (range: DateRange | undefined) => void;
 }
 
 export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
@@ -14,49 +13,64 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
   onChange,
 }) => {
   const handleDateSelect = (date: Date | undefined, mode: "from" | "to") => {
-    const updatedRange: DateRange = {
-      from: mode === "from" ? date || undefined : range?.from,
-      to: mode === "to" ? date || undefined : range?.to,
-    };
+    const updatedRange =
+      mode === "from"
+        ? { from: date || undefined, to: range?.to || undefined }
+        : { from: range?.from || undefined, to: date || undefined };
     onChange(updatedRange);
   };
 
-  const formatDateRange = (range?: DateRange) => {
-    if (!range) return "Non spécifiée";
-    const from = range.from
-      ? new Date(range.from).toLocaleDateString()
-      : "Début non spécifié";
-    const to = range.to
-      ? new Date(range.to).toLocaleDateString()
-      : "Fin non spécifiée";
-    return `${from} - ${to}`;
+  const modifiersForFromCalendar = {
+    selected: (date: Date) =>
+      range?.from ? date.getTime() === range.from.getTime() : false,
+  };
+
+  const modifiersForToCalendar = {
+    selected: (date: Date) =>
+      range?.to ? date.getTime() === range.to.getTime() : false,
+  };
+
+  const modifiersClassNames = {
+    selected: "day-selected", // Apply 'day-selected' class to matching dates
   };
 
   return (
-    <div>
-      <label className="block mb-2">{label}</label>
+    <div className="calendar-container">
+      <h3 className="calendar-title">{label}</h3>
       <div className="grid grid-cols-2 gap-4">
+        {/* After Date */}
         <div>
           <label className="text-sm">Après le</label>
           <Calendar
             mode="single"
             selected={range?.from || undefined}
             onSelect={(date) => handleDateSelect(date, "from")}
-            className="rounded-md border"
+            modifiers={modifiersForFromCalendar} // Pass specific modifiers
+            modifiersClassNames={modifiersClassNames} // Pass class names
           />
         </div>
+
+        {/* Before Date */}
         <div>
           <label className="text-sm">Avant le</label>
           <Calendar
             mode="single"
             selected={range?.to || undefined}
             onSelect={(date) => handleDateSelect(date, "to")}
-            className="rounded-md border"
+            modifiers={modifiersForToCalendar} // Pass specific modifiers
+            modifiersClassNames={modifiersClassNames} // Pass class names
           />
         </div>
       </div>
       <p className="mt-2 text-sm text-gray-400">
-        Dates sélectionnées : {formatDateRange(range)}
+        Dates sélectionnées :{" "}
+        {range?.from
+          ? `${new Date(range.from).toLocaleDateString()}`
+          : "Non spécifiée"}{" "}
+        -{" "}
+        {range?.to
+          ? `${new Date(range.to).toLocaleDateString()}`
+          : "Non spécifiée"}
       </p>
     </div>
   );

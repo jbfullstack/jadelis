@@ -1,0 +1,27 @@
+.calendar-container {
+  border: 2px solid #233abe; /* Orange border */
+  padding: 16px;
+  border-radius: 8px;
+  background-color: #060b14; /* Darker background for contrast */
+  margin-bottom: 16px;
+}
+
+.calendar-title {
+  font-size: 1.25rem; /* Bigger font */
+  font-weight: bold;
+  color: #ffffff; /* Orange color */
+  margin-bottom: 8px;
+}
+
+.selected-date {
+  background-color: #0066ff; /* Highlight color */
+  color: white;
+  border-radius: 50%;
+  padding: 4px 8px;
+}
+
+.day-selected {
+  background-color: #3268cc !important; /* Orange background */
+  color: white !important; /* White text */
+  border-radius: 10%; /* Circular shape */
+}
