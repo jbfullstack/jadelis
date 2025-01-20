@@ -103,12 +103,18 @@ export async function GET(request: Request) {
     const values: (string | number | number[])[] = [];
     let valueIndex = 1;
 
+    // Name filter
     if (params.has("name")) {
-      query += ` AND (p.first_name ILIKE $${valueIndex} OR p.last_name ILIKE $${valueIndex})`;
+      query += ` AND (
+        p.first_name ILIKE $${valueIndex} OR 
+        p.last_name ILIKE $${valueIndex} OR 
+        p.description ILIKE $${valueIndex}
+      )`;
       values.push(`%${params.get("name")}%`);
       valueIndex++;
     }
 
+    // Numbers filter
     if (params.has("numbers")) {
       const numbers = params.get("numbers")!.split(",").map(Number);
       query += ` AND p.number = ANY($${valueIndex}::int[])`;
@@ -116,6 +122,7 @@ export async function GET(request: Request) {
       valueIndex++;
     }
 
+    // Birth date range filter
     if (params.has("birthDateAfter")) {
       query += ` AND p.birth_date >= $${valueIndex}`;
       values.push(params.get("birthDateAfter")!);
@@ -127,6 +134,7 @@ export async function GET(request: Request) {
       valueIndex++;
     }
 
+    // Death date range filter
     if (params.has("deathDateAfter")) {
       query += ` AND p.death_date >= $${valueIndex}`;
       values.push(params.get("deathDateAfter")!);
@@ -138,9 +146,17 @@ export async function GET(request: Request) {
       valueIndex++;
     }
 
+    // Category filter
     if (params.has("categories")) {
-      const categories = params.get("categories")!.split(",").map(Number); // Ensure categories are parsed as integers
-      query += ` AND c.id = ANY($${valueIndex}::int[])`;
+      const categories = params.get("categories")!.split(",").map(Number);
+      query += `
+        AND EXISTS (
+          SELECT 1
+          FROM person_categories pc
+          WHERE pc.person_id = p.id
+            AND pc.category_id = ANY($${valueIndex}::int[])
+        )
+      `;
       values.push(categories);
       valueIndex++;
     }

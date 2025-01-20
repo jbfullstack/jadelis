@@ -13,54 +13,54 @@ export default function PersonPage() {
   const [isSearchFormExpanded, setSearchFormExpanded] = useState(false); // For "Rechercher"
 
   const handleSearch = async (searchData: SearchData) => {
+    const queryParams = new URLSearchParams();
+
+    if (searchData.name) queryParams.append("name", searchData.name);
+    if (searchData.numbers.length > 0) {
+      queryParams.append("numbers", searchData.numbers.join(","));
+    }
+    if (searchData.birthDateRange?.from) {
+      queryParams.append(
+        "birthDateAfter",
+        searchData.birthDateRange.from.toISOString()
+      );
+    }
+    if (searchData.birthDateRange?.to) {
+      queryParams.append(
+        "birthDateBefore",
+        searchData.birthDateRange.to.toISOString()
+      );
+    }
+    if (searchData.deathDateRange?.from) {
+      queryParams.append(
+        "deathDateAfter",
+        searchData.deathDateRange.from.toISOString()
+      );
+    }
+    if (searchData.deathDateRange?.to) {
+      queryParams.append(
+        "deathDateBefore",
+        searchData.deathDateRange.to.toISOString()
+      );
+    }
+    if (searchData.selectedCategories.length > 0) {
+      queryParams.append(
+        "categories",
+        searchData.selectedCategories.map(String).join(",")
+      );
+    }
+
+    // Fetch results from the backend
     try {
-      const queryParams = new URLSearchParams();
-
-      if (searchData.name) queryParams.append("name", searchData.name);
-      if (searchData.numbers.length) {
-        queryParams.append("numbers", searchData.numbers.join(","));
-      }
-
-      if (searchData.birthDateRange?.from) {
-        queryParams.append(
-          "birthDateAfter",
-          searchData.birthDateRange.from.toISOString()
-        );
-      }
-      if (searchData.birthDateRange?.to) {
-        queryParams.append(
-          "birthDateBefore",
-          searchData.birthDateRange.to.toISOString()
-        );
-      }
-      if (searchData.deathDateRange?.from) {
-        queryParams.append(
-          "deathDateAfter",
-          searchData.deathDateRange.from.toISOString()
-        );
-      }
-      if (searchData.deathDateRange?.to) {
-        queryParams.append(
-          "deathDateBefore",
-          searchData.deathDateRange.to.toISOString()
-        );
-      }
-
-      const response = await fetch(`/api/person?${queryParams}`);
+      const response = await fetch(`/api/person?${queryParams.toString()}`);
       if (!response.ok) {
         throw new Error("Failed to fetch results");
       }
-
       const data = await response.json();
-
-      if (Array.isArray(data.results)) {
-        setSearchResults(data.results);
-      } else {
-        throw new Error("Unexpected API response format");
-      }
+      console.log("Search results:", data);
+      // Handle the results here (e.g., update state)
     } catch (error) {
-      console.error("Error performing search:", error);
-      setSearchResults(null); // Réinitialiser les résultats en cas d'erreur
+      console.error("Error fetching persons:", error);
     }
   };
 
