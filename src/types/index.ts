@@ -1,10 +1,12 @@
-import { DateRange } from "react-day-picker";
+import type { DateRange as ReactDayPickerDateRange } from "react-day-picker";
+
+export type DateRange = ReactDayPickerDateRange;
 
 export interface SearchData {
-  name?: string;
-  number?: string;
-  birthDateRange: DateRange | null;
-  deathDateRange: DateRange | null;
+  name: string;
+  numbers: number[];
+  birthDateRange?: DateRange; // Use optional
+  deathDateRange?: DateRange; // Use optional
   selectedCategories: number[];
 }
 
@@ -21,11 +23,10 @@ export interface Person {
   id: number;
   first_name: string;
   last_name: string;
-  description?: string;
+  description: string; // Assurez-vous que `description` est obligatoire
   birth_date: string;
-  death_date?: string;
+  death_date: string | null;
   number: number;
-  category_names: string[];
 }
 
 export interface Match {
