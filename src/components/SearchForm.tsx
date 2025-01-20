@@ -6,7 +6,7 @@ import { SearchFormInput } from "./ui/SearchFormInput";
 import { LifePathSelector } from "./ui/LifePathSelector";
 import { DaySelector } from "./ui/DaySelector";
 import { DateRangeFilter } from "./ui/DateRangeFilter";
-import type { SearchData } from "@/types";
+import type { SearchData, PersonResult } from "@/types";
 
 interface Category {
   id: number;
@@ -14,14 +14,17 @@ interface Category {
 }
 
 interface SearchFormProps {
-  onSearch: (data: SearchData) => void;
+  onSearch: (
+    data: SearchData
+  ) => Promise<{ success: boolean; results: PersonResult[] }>;
+  handleDownload: (format: "csv" | "pdf") => void;
 }
 
 export const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
   const [searchData, setSearchData] = useState<SearchData>({
     name: "",
     numbers: [],
-    birthDays: [], // Typed correctly as number[]
+    birthDays: [],
     birthDateRange: undefined,
     deathDateRange: undefined,
     selectedCategories: [],
@@ -29,6 +32,8 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
 
   const [categories, setCategories] = useState<Record<string, Category[]>>({});
   const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState<PersonResult[]>([]); // Use `PersonResult[]` as type
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch categories from the backend
   useEffect(() => {
@@ -52,11 +57,20 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
 
     try {
-      await onSearch(searchData); // Await search process to ensure spinner hides correctly
+      const response = await onSearch(searchData); // Await search process to ensure spinner hides correctly
+      if (response.success) {
+        setResults(response.results);
+      } else {
+        setResults([]);
+        setError("No results found.");
+      }
     } catch (error) {
       console.error("Search failed:", error);
+      setResults([]);
+      setError("An unexpected error occurred during the search.");
     } finally {
       setLoading(false);
     }
@@ -79,7 +93,7 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
           onChange={(numbers) => setSearchData({ ...searchData, numbers })}
         />
         <DaySelector
-          selectedDays={searchData.birthDays} // Pass birthDays as selectedDays
+          selectedDays={searchData.birthDays}
           onChange={(days) => setSearchData({ ...searchData, birthDays: days })}
         />
         <div className="grid grid-cols-2 gap-6">
@@ -142,6 +156,57 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
           Rechercher
         </button>
       </form>
+
+      {/* Results Section */}
+      <div className="mt-6">
+        {error && <p className="text-red-500">{error}</p>}
+        {results.length > 0 && (
+          <div>
+            <p className="text-gray-300 mb-4">
+              <strong>Total Results: {results.length}</strong>
+            </p>
+            <div className="bg-gray-800 p-4 rounded-md">
+              <h2 className="text-lg font-bold text-white mb-4">Résultats</h2>
+              <ul className="space-y-4">
+                {results.map((result) => (
+                  <li
+                    key={result.id}
+                    className="bg-gray-900 p-4 rounded-md shadow-md hover:bg-gray-700 w-full"
+                  >
+                    <div className="grid grid-cols-3 items-center">
+                      <div>
+                        <p className="text-white font-semibold">
+                          {result.first_name} {result.last_name}
+                        </p>
+                        <p className="text-gray-400">{result.description}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-gray-500 text-sm">
+                          <strong>Naissance:</strong>{" "}
+                          {result.birth_date
+                            ? new Date(result.birth_date).toLocaleDateString()
+                            : "Non spécifiée"}
+                        </p>
+                        <p className="text-gray-500 text-sm">
+                          <strong>Décès:</strong>{" "}
+                          {result.death_date
+                            ? new Date(result.death_date).toLocaleDateString()
+                            : "Non spécifiée"}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="bg-orange-500 text-black font-bold text-lg rounded-full px-4 py-2 inline-block shadow-md">
+                          {result.number}
+                        </p>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
