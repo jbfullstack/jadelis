@@ -7,8 +7,7 @@ import { ResultsTable } from "@/components/ResultsTable";
 import type { SearchData, Person } from "@/types";
 
 export default function PersonPage() {
-  const [searchResults] = useState<Person[] | null>(null);
-
+  const [searchResults, setSearchResults] = useState<Person[] | null>(null);
   const [isPersonFormExpanded, setPersonFormExpanded] = useState(true); // For "Enregistrer une personne"
   const [isSearchFormExpanded, setSearchFormExpanded] = useState(false); // For "Rechercher"
 
@@ -58,9 +57,10 @@ export default function PersonPage() {
       }
       const data = await response.json();
       console.log("Search results:", data);
-      // Handle the results here (e.g., update state)
+      setSearchResults(data.results || []); // Update searchResults state
     } catch (error) {
       console.error("Error fetching persons:", error);
+      setSearchResults(null); // Clear results on error
     }
   };
 

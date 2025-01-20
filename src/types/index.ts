@@ -29,6 +29,16 @@ export interface Person {
   number: number;
 }
 
+export interface PersonResult {
+  id: number;
+  first_name: string;
+  last_name: string;
+  description?: string;
+  birth_date?: string;
+  death_date?: string;
+  number: number;
+}
+
 export interface Match {
   id: number;
   first_name: string;
