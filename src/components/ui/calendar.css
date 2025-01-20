@@ -1,6 +1,6 @@
 .day-selected {
-  background-color: #ff9800; /* Highlight color */
+  background-color: #3268cc; /* Highlight color */
   color: #ffffff; /* Text color for contrast */
-  border-radius: 50%; /* Make it circular */
+  border-radius: 10%; /* Make it circular */
   font-weight: bold;
 }

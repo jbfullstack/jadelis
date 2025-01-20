@@ -18,6 +18,9 @@ export default function PersonPage() {
     if (searchData.numbers.length > 0) {
       queryParams.append("numbers", searchData.numbers.join(","));
     }
+    if (searchData.birthDays.length > 0) {
+      queryParams.append("birthDays", searchData.birthDays.join(",")); // Add birthDays
+    }
     if (searchData.birthDateRange?.from) {
       queryParams.append(
         "birthDateAfter",

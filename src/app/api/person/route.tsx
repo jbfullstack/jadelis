@@ -89,7 +89,6 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
-  // await new Promise((resolve) => setTimeout(resolve, 2000));
   try {
     const url = new URL(request.url);
     const params = url.searchParams;
@@ -120,6 +119,14 @@ export async function GET(request: Request) {
       const numbers = params.get("numbers")!.split(",").map(Number);
       query += ` AND p.number = ANY($${valueIndex}::int[])`;
       values.push(numbers);
+      valueIndex++;
+    }
+
+    // Days filter
+    if (params.has("birthDays")) {
+      const birthDays = params.get("birthDays")!.split(",").map(Number);
+      query += ` AND EXTRACT(DAY FROM p.birth_date) = ANY($${valueIndex}::int[])`;
+      values.push(birthDays);
       valueIndex++;
     }
 

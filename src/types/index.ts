@@ -5,6 +5,7 @@ export type DateRange = ReactDayPickerDateRange;
 export interface SearchData {
   name: string;
   numbers: number[];
+  birthDays: number[];
   birthDateRange?: DateRange; // Use optional
   deathDateRange?: DateRange; // Use optional
   selectedCategories: number[];

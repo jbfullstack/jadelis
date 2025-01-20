@@ -1,14 +1,17 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { Spinner } from "./ui/Spinner";
 import { SearchFormInput } from "./ui/SearchFormInput";
 import { LifePathSelector } from "./ui/LifePathSelector";
+import { DaySelector } from "./ui/DaySelector";
 import { DateRangeFilter } from "./ui/DateRangeFilter";
-import { CategorySelector } from "./ui/CategorySelector";
 import type { SearchData } from "@/types";
 
-import "./SearchFormStyles.css";
+interface Category {
+  id: number;
+  name: string;
+}
 
 interface SearchFormProps {
   onSearch: (data: SearchData) => void;
@@ -18,23 +21,44 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
   const [searchData, setSearchData] = useState<SearchData>({
     name: "",
     numbers: [],
+    birthDays: [], // Typed correctly as number[]
     birthDateRange: undefined,
     deathDateRange: undefined,
     selectedCategories: [],
   });
 
+  const [categories, setCategories] = useState<Record<string, Category[]>>({});
   const [loading, setLoading] = useState(false);
+
+  // Fetch categories from the backend
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const response = await fetch("/api/categories");
+        const data = await response.json();
+        if (data.success) {
+          setCategories(data.categories); // Update state with fetched categories
+        } else {
+          console.error("Failed to fetch categories:", data.error);
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    }
+
+    fetchCategories();
+  }, []);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      await onSearch(searchData); // Ensure the search process is awaited
+      await onSearch(searchData); // Await search process to ensure spinner hides correctly
     } catch (error) {
       console.error("Search failed:", error);
     } finally {
-      setLoading(false); // Ensure spinner is hidden even if an error occurs
+      setLoading(false);
     }
   };
 
@@ -54,6 +78,10 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
           selected={searchData.numbers}
           onChange={(numbers) => setSearchData({ ...searchData, numbers })}
         />
+        <DaySelector
+          selectedDays={searchData.birthDays} // Pass birthDays as selectedDays
+          onChange={(days) => setSearchData({ ...searchData, birthDays: days })}
+        />
         <div className="grid grid-cols-2 gap-6">
           <DateRangeFilter
             label="Plage de dates de naissance"
@@ -70,22 +98,43 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
             }
           />
         </div>
-        <CategorySelector
-          categories={{
-            // Temporary mock until dynamic categories are fetched in the parent
-            Science: [{ id: 1, name: "Informatique" }],
-          }}
-          selectedCategories={searchData.selectedCategories}
-          onCategoryChange={(id, selected) => {
-            const updatedCategories = selected
-              ? [...searchData.selectedCategories, id]
-              : searchData.selectedCategories.filter((catId) => catId !== id);
-            setSearchData({
-              ...searchData,
-              selectedCategories: updatedCategories,
-            });
-          }}
-        />
+        {/* Categories Section */}
+        <div>
+          <label className="block mb-2">Catégories</label>
+          <div className="border border-gray-600 rounded p-4 max-h-[300px] overflow-y-auto">
+            {Object.entries(categories).map(([superCategory, categoryList]) => (
+              <div key={superCategory} className="mb-4">
+                <h3 className="text-lg font-semibold">{superCategory}</h3>
+                {categoryList.map((category) => (
+                  <label
+                    key={category.id}
+                    className="flex items-center space-x-2"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={searchData.selectedCategories.includes(
+                        category.id
+                      )}
+                      onChange={(e) => {
+                        const selected = e.target.checked
+                          ? [...searchData.selectedCategories, category.id]
+                          : searchData.selectedCategories.filter(
+                              (id) => id !== category.id
+                            );
+                        setSearchData({
+                          ...searchData,
+                          selectedCategories: selected,
+                        });
+                      }}
+                      className="form-checkbox h-4 w-4 text-blue-600"
+                    />
+                    <span>{category.name}</span>
+                  </label>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
         <button
           type="submit"
           className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
