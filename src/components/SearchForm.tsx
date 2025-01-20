@@ -162,10 +162,11 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
         {error && <p className="text-red-500">{error}</p>}
         {results.length > 0 && (
           <div>
+            {/*
             <p className="text-gray-300 mb-4">
               <strong>Total Results: {results.length}</strong>
             </p>
-            <div className="bg-gray-800 p-4 rounded-md">
+             <div className="bg-gray-800 p-4 rounded-md">
               <h2 className="text-lg font-bold text-white mb-4">Résultats</h2>
               <ul className="space-y-4">
                 {results.map((result) => (
@@ -203,7 +204,7 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
                   </li>
                 ))}
               </ul>
-            </div>
+            </div> */}
           </div>
         )}
       </div>
