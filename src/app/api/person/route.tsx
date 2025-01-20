@@ -89,6 +89,7 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
+  // await new Promise((resolve) => setTimeout(resolve, 2000));
   try {
     const url = new URL(request.url);
     const params = url.searchParams;

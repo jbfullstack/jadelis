@@ -4,6 +4,7 @@ import { useState, FormEvent, useEffect } from "react";
 import { Calendar } from "./ui/calendar";
 import type { SearchData } from "@/types";
 import { DateRange } from "react-day-picker";
+import { Spinner } from "./ui/Spinner";
 
 interface SearchFormProps {
   onSearch: (data: SearchData) => void;
@@ -20,10 +21,11 @@ export const SearchForm = ({ onSearch }: SearchFormProps) => {
     selectedCategories: [],
   });
 
+  const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<{
     [superCategory: string]: { id: number; name: string }[];
   }>({});
-  const [results, setResults] = useState<any[]>([]); // Adding results state to display fetched data
+  const [results, setResults] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -45,6 +47,9 @@ export const SearchForm = ({ onSearch }: SearchFormProps) => {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoading(true);
+    setError(null);
+
     const queryParams = new URLSearchParams();
 
     if (searchData.name) queryParams.append("name", searchData.name);
@@ -81,15 +86,18 @@ export const SearchForm = ({ onSearch }: SearchFormProps) => {
       const data = await response.json();
 
       if (data.success) {
-        setResults(data.results); // Update results state
-        setError(null); // Clear error
+        setResults(data.results || []);
+        setError(null);
       } else {
+        setResults([]);
         setError("No results found.");
-        setResults([]); // Clear results
       }
     } catch (err) {
       console.error("Error fetching persons:", err);
+      setResults([]);
       setError("An unexpected error occurred.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -120,8 +128,24 @@ export const SearchForm = ({ onSearch }: SearchFormProps) => {
     });
   };
 
+  const formatDateRange = (range?: DateRange) => {
+    if (!range) return "Non spécifiée";
+    const from = range.from
+      ? new Date(range.from).toLocaleDateString()
+      : "Début non spécifié";
+    const to = range.to
+      ? new Date(range.to).toLocaleDateString()
+      : "Fin non spécifiée";
+    return `${from} - ${to}`;
+  };
+
   return (
     <div>
+      {loading && (
+        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
+          <Spinner />
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="space-y-6 text-white">
         <input
           type="text"
@@ -133,6 +157,7 @@ export const SearchForm = ({ onSearch }: SearchFormProps) => {
           className="w-full p-2 border rounded bg-gray-800 border-gray-600"
         />
 
+        {/* Life Path Numbers */}
         <div>
           <label className="block mb-2">Numéros de chemin de vie</label>
           <div className="flex flex-wrap gap-2">
@@ -153,45 +178,74 @@ export const SearchForm = ({ onSearch }: SearchFormProps) => {
           </div>
         </div>
 
+        {/* Date Filters */}
         <div className="grid grid-cols-2 gap-6">
+          {/* Birth Date */}
           <div>
             <label className="block mb-2">Plage de dates de naissance</label>
-            <Calendar
-              mode="single"
-              selected={searchData.birthDateRange?.from || undefined}
-              onSelect={(date) =>
-                handleDateSelect(date || undefined, "birth", "from")
-              }
-              className="rounded-md border"
-            />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm">Après le</label>
+                <Calendar
+                  mode="single"
+                  selected={searchData.birthDateRange?.from || undefined}
+                  onSelect={(date) =>
+                    handleDateSelect(date || undefined, "birth", "from")
+                  }
+                  className="rounded-md border"
+                />
+              </div>
+              <div>
+                <label className="text-sm">Avant le</label>
+                <Calendar
+                  mode="single"
+                  selected={searchData.birthDateRange?.to || undefined}
+                  onSelect={(date) =>
+                    handleDateSelect(date || undefined, "birth", "to")
+                  }
+                  className="rounded-md border"
+                />
+              </div>
+            </div>
             <p className="mt-2 text-sm text-gray-400">
-              {searchData.birthDateRange?.from
-                ? `Date sélectionnée : ${new Date(
-                    searchData.birthDateRange.from
-                  ).toLocaleDateString()}`
-                : "Non spécifiée"}
+              Dates sélectionnées : {formatDateRange(searchData.birthDateRange)}
             </p>
           </div>
+
+          {/* Death Date */}
           <div>
             <label className="block mb-2">Plage de dates de décès</label>
-            <Calendar
-              mode="single"
-              selected={searchData.deathDateRange?.from || undefined}
-              onSelect={(date) =>
-                handleDateSelect(date || undefined, "death", "from")
-              }
-              className="rounded-md border"
-            />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm">Après le</label>
+                <Calendar
+                  mode="single"
+                  selected={searchData.deathDateRange?.from || undefined}
+                  onSelect={(date) =>
+                    handleDateSelect(date || undefined, "death", "from")
+                  }
+                  className="rounded-md border"
+                />
+              </div>
+              <div>
+                <label className="text-sm">Avant le</label>
+                <Calendar
+                  mode="single"
+                  selected={searchData.deathDateRange?.to || undefined}
+                  onSelect={(date) =>
+                    handleDateSelect(date || undefined, "death", "to")
+                  }
+                  className="rounded-md border"
+                />
+              </div>
+            </div>
             <p className="mt-2 text-sm text-gray-400">
-              {searchData.deathDateRange?.from
-                ? `Date sélectionnée : ${new Date(
-                    searchData.deathDateRange.from
-                  ).toLocaleDateString()}`
-                : "Non spécifiée"}
+              Dates sélectionnées : {formatDateRange(searchData.deathDateRange)}
             </p>
           </div>
         </div>
 
+        {/* Categories */}
         <div>
           <label className="block mb-2">Catégories</label>
           <div className="border border-gray-600 rounded p-4 max-h-[300px] overflow-y-auto">
