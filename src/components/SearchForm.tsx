@@ -43,6 +43,37 @@ export const SearchForm = ({ onSearch }: SearchFormProps) => {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const queryParams = new URLSearchParams();
+
+    if (searchData.name) queryParams.append("name", searchData.name);
+    if (searchData.numbers.length > 0)
+      queryParams.append("numbers", searchData.numbers.join(","));
+    if (searchData.birthDateRange?.from)
+      queryParams.append(
+        "birthDateAfter",
+        searchData.birthDateRange.from.toISOString()
+      );
+    if (searchData.birthDateRange?.to)
+      queryParams.append(
+        "birthDateBefore",
+        searchData.birthDateRange.to.toISOString()
+      );
+    if (searchData.deathDateRange?.from)
+      queryParams.append(
+        "deathDateAfter",
+        searchData.deathDateRange.from.toISOString()
+      );
+    if (searchData.deathDateRange?.to)
+      queryParams.append(
+        "deathDateBefore",
+        searchData.deathDateRange.to.toISOString()
+      );
+    if (searchData.selectedCategories.length > 0)
+      queryParams.append(
+        "categories",
+        searchData.selectedCategories.map(String).join(",")
+      );
+
     onSearch(searchData);
   };
 
@@ -60,7 +91,7 @@ export const SearchForm = ({ onSearch }: SearchFormProps) => {
     mode: "from" | "to"
   ) => {
     const key = `${type}DateRange` as keyof SearchData;
-    const currentRange = searchData[key] as DateRange | undefined; // Explicit assertion
+    const currentRange = searchData[key] as DateRange | undefined;
 
     const updatedRange =
       mode === "from"
@@ -71,17 +102,6 @@ export const SearchForm = ({ onSearch }: SearchFormProps) => {
       ...searchData,
       [key]: updatedRange,
     });
-  };
-
-  const formatDateRange = (range: DateRange | null | undefined) => {
-    if (!range?.from && !range?.to) return "Non spécifiée";
-    const from = range?.from
-      ? new Date(range.from).toLocaleDateString()
-      : "Début non spécifié";
-    const to = range?.to
-      ? new Date(range.to).toLocaleDateString()
-      : "Fin non spécifiée";
-    return `${from} - ${to}`;
   };
 
   return (

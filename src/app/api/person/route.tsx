@@ -19,15 +19,15 @@ export async function POST(request: Request) {
     if (!confirm) {
       const checkQuery = `
         SELECT
-        id,
-        first_name,
-        last_name,
-        COALESCE(description, '') AS description, -- Remplace NULL par une chaîne vide
-        birth_date,
-        death_date,
-        number
-      FROM persons;
-
+          id,
+          first_name,
+          last_name,
+          COALESCE(description, '') AS description,
+          birth_date,
+          death_date,
+          number
+        FROM persons
+        WHERE birth_date = $1;
       `;
       const checkResult = await pool.query(checkQuery, [new Date(birthDate)]);
 
@@ -68,11 +68,9 @@ export async function POST(request: Request) {
     if (selectedCategories && selectedCategories.length > 0) {
       const categoryQuery = `
         INSERT INTO person_categories (person_id, category_id)
-        VALUES ${selectedCategories
-          .map((_unused: unknown, index: number) => `($1, $${index + 2})`)
-          .join(", ")};
+        SELECT $1, unnest($2::int[]);
       `;
-      const categoryValues = [personId, ...selectedCategories];
+      const categoryValues = [personId, selectedCategories];
       await pool.query(categoryQuery, categoryValues);
     }
 
@@ -91,64 +89,66 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-
-  const name = searchParams.get("name") || null;
-  const numbers = searchParams.get("numbers")
-    ? searchParams
-        .get("numbers")!
-        .split(",")
-        .map((num) => parseInt(num.trim(), 10))
-    : null;
-  const birthDateAfter = searchParams.get("birthDateAfter")
-    ? new Date(searchParams.get("birthDateAfter")!)
-    : null;
-  const birthDateBefore = searchParams.get("birthDateBefore")
-    ? new Date(searchParams.get("birthDateBefore")!)
-    : null;
-  const deathDateAfter = searchParams.get("deathDateAfter")
-    ? new Date(searchParams.get("deathDateAfter")!)
-    : null;
-  const deathDateBefore = searchParams.get("deathDateBefore")
-    ? new Date(searchParams.get("deathDateBefore")!)
-    : null;
-  const categories = searchParams.get("categories")
-    ? searchParams
-        .get("categories")!
-        .split(",")
-        .map((id) => parseInt(id.trim(), 10))
-    : null;
-
   try {
-    const query = `
-      SELECT DISTINCT p.*
+    const url = new URL(request.url);
+    const params = url.searchParams;
+
+    let query = `
+      SELECT p.id, p.first_name, p.last_name, p.description, p.birth_date, p.death_date, p.number
       FROM persons p
       LEFT JOIN person_categories pc ON p.id = pc.person_id
-      WHERE ($1::text IS NULL OR p.first_name ILIKE $1 || '%')
-        AND ($2::text IS NULL OR p.last_name ILIKE $2 || '%')
-        AND ($3::int[] IS NULL OR p.number = ANY($3))
-        AND ($4::date IS NULL OR p.birth_date >= $4)
-        AND ($5::date IS NULL OR p.birth_date <= $5)
-        AND ($6::date IS NULL OR p.death_date >= $6)
-        AND ($7::date IS NULL OR p.death_date <= $7)
-        AND ($8::int[] IS NULL OR EXISTS (
-          SELECT 1
-          FROM person_categories pc
-          WHERE pc.person_id = p.id AND pc.category_id = ANY($8)
-        ))
-      ORDER BY p.birth_date;
+      LEFT JOIN categories c ON pc.category_id = c.id
+      WHERE 1 = 1
     `;
+    const values: (string | number | number[])[] = [];
+    let valueIndex = 1;
 
-    const values = [
-      name,
-      null, // Last name placeholder if needed
-      numbers, // Array of numbers
-      birthDateAfter, // Start of birth date range
-      birthDateBefore, // End of birth date range
-      deathDateAfter, // Start of death date range
-      deathDateBefore, // End of death date range
-      categories, // Array of category IDs
-    ];
+    if (params.has("name")) {
+      query += ` AND (p.first_name ILIKE $${valueIndex} OR p.last_name ILIKE $${valueIndex})`;
+      values.push(`%${params.get("name")}%`);
+      valueIndex++;
+    }
+
+    if (params.has("numbers")) {
+      const numbers = params.get("numbers")!.split(",").map(Number);
+      query += ` AND p.number = ANY($${valueIndex}::int[])`;
+      values.push(numbers);
+      valueIndex++;
+    }
+
+    if (params.has("birthDateAfter")) {
+      query += ` AND p.birth_date >= $${valueIndex}`;
+      values.push(params.get("birthDateAfter")!);
+      valueIndex++;
+    }
+    if (params.has("birthDateBefore")) {
+      query += ` AND p.birth_date <= $${valueIndex}`;
+      values.push(params.get("birthDateBefore")!);
+      valueIndex++;
+    }
+
+    if (params.has("deathDateAfter")) {
+      query += ` AND p.death_date >= $${valueIndex}`;
+      values.push(params.get("deathDateAfter")!);
+      valueIndex++;
+    }
+    if (params.has("deathDateBefore")) {
+      query += ` AND p.death_date <= $${valueIndex}`;
+      values.push(params.get("deathDateBefore")!);
+      valueIndex++;
+    }
+
+    if (params.has("categories")) {
+      const categories = params.get("categories")!.split(",").map(Number); // Ensure categories are parsed as integers
+      query += ` AND c.id = ANY($${valueIndex}::int[])`;
+      values.push(categories);
+      valueIndex++;
+    }
+
+    query += ` GROUP BY p.id ORDER BY p.last_name, p.first_name`;
+
+    console.log("Query:", query);
+    console.log("Values:", values);
 
     const result = await pool.query(query, values);
     return NextResponse.json({ success: true, results: result.rows });
