@@ -7,7 +7,7 @@ import { ResultsTable } from "@/components/ResultsTable";
 import type { SearchData, Person } from "@/types";
 
 export default function PersonPage() {
-  const [searchResults, setSearchResults] = useState<Person[] | null>(null);
+  const [searchResults] = useState<Person[] | null>(null);
 
   const [isPersonFormExpanded, setPersonFormExpanded] = useState(true); // For "Enregistrer une personne"
   const [isSearchFormExpanded, setSearchFormExpanded] = useState(false); // For "Rechercher"

@@ -7,12 +7,22 @@ import { DateRange } from "react-day-picker";
 import { Spinner } from "./ui/Spinner";
 
 interface SearchFormProps {
-  onSearch: (data: SearchData) => void;
+  onSearch?: (data: SearchData) => void;
+}
+
+interface PersonResult {
+  id: number;
+  first_name: string;
+  last_name: string;
+  description?: string;
+  birth_date?: string;
+  death_date?: string;
+  number: number;
 }
 
 const lifePathOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 22, 28, 33];
 
-export const SearchForm = ({ onSearch }: SearchFormProps) => {
+export const SearchForm = ({}: SearchFormProps) => {
   const [searchData, setSearchData] = useState<SearchData>({
     name: "",
     numbers: [],
@@ -25,7 +35,7 @@ export const SearchForm = ({ onSearch }: SearchFormProps) => {
   const [categories, setCategories] = useState<{
     [superCategory: string]: { id: number; name: string }[];
   }>({});
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<PersonResult[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
