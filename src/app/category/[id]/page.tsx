@@ -16,56 +16,46 @@ export default function CategoryDetailPage({ params }: Props) {
   const router = useRouter();
   const categoryId = parseInt(params.id, 10);
 
-  // Category name for editing
   const [name, setName] = useState("");
-
-  // Full list of super-categories (for checkboxes)
   const [superCats, setSuperCats] = useState<SuperCategory[]>([]);
+  const [linkedIds, setLinkedIds] = useState<number[]>([]);
 
-  // The IDs of the super-categories currently linked to this category
-  const [linkedSuperCats, setLinkedSuperCats] = useState<number[]>([]);
-
-  // 1) fetch the single category (name)
-  // 2) fetch all super-categories
-  // 3) fetch which are linked
   useEffect(() => {
-    // Get category /api/categories/:id
+    // 1) get category => name
     fetch(`/api/categories/${categoryId}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
           setName(data.category.name);
         } else {
-          alert("Category not found!");
+          alert("Category not found.");
           router.push("/category");
         }
       })
       .catch(console.error);
 
-    // Get all supercategories /api/supercategories
+    // 2) get all supercategories
     fetch("/api/supercategories")
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
-          // data.data might be {success: true, data: []}
-          setSuperCats(data.data);
+          setSuperCats(data.data); // data.data = array of {id,name}
         }
       })
       .catch(console.error);
 
-    // Get which supercats are linked to this category
+    // 3) get linked supercats
     fetch(`/api/categories/link?categoryId=${categoryId}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
-          // data.linked => array of IDs
-          setLinkedSuperCats(data.linked);
+          setLinkedIds(data.linked);
         }
       })
       .catch(console.error);
   }, [categoryId, router]);
 
-  // Update the category name
+  // PATCH => update name
   async function handleUpdate(e: React.FormEvent) {
     e.preventDefault();
     try {
@@ -74,96 +64,169 @@ export default function CategoryDetailPage({ params }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name }),
       });
-      const data = await res.json();
-      if (data.success) {
+      const json = await res.json();
+      if (json.success) {
         alert("Updated!");
-        router.push("/category");
       } else {
-        alert("Update failed: " + (data.error || "unknown error"));
+        alert("Update failed: " + (json.error || "Unknown error"));
       }
-    } catch (error) {
-      console.error("Error updating category:", error);
+    } catch (err) {
+      console.error("Error updating category:", err);
     }
   }
 
-  // Delete the category
+  // DELETE => remove category
   async function handleDelete() {
-    if (!confirm("Delete category?")) return;
+    if (!confirm("Delete this category?")) return;
     try {
       const res = await fetch(`/api/categories/${categoryId}`, {
         method: "DELETE",
       });
-      const data = await res.json();
-      if (data.success) {
+      const json = await res.json();
+      if (json.success) {
         alert("Deleted!");
         router.push("/category");
       } else {
-        alert("Delete failed: " + (data.error || "unknown error"));
+        alert("Delete failed: " + (json.error || "Unknown error"));
       }
-    } catch (error) {
-      console.error("Error deleting category:", error);
+    } catch (err) {
+      console.error("Error deleting category:", err);
     }
   }
 
-  // Toggle link/unlink when user checks or unchecks a box
-  async function toggleLink(superCatId: number, isCurrentlyLinked: boolean) {
+  // link/unlink checkbox
+  async function toggleLink(superCategoryId: number, isLinked: boolean) {
     try {
-      if (isCurrentlyLinked) {
-        // Unlink
+      if (isLinked) {
+        // unlink => DELETE /api/categories/link
         await fetch("/api/categories/link", {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ categoryId, superCategoryId: superCatId }),
+          body: JSON.stringify({ categoryId, superCategoryId }),
         });
-        // remove from local state
-        setLinkedSuperCats((prev) => prev.filter((id) => id !== superCatId));
+        setLinkedIds((prev) => prev.filter((id) => id !== superCategoryId));
       } else {
-        // Link
+        // link => POST /api/categories/link
         await fetch("/api/categories/link", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ categoryId, superCategoryId: superCatId }),
+          body: JSON.stringify({ categoryId, superCategoryId }),
         });
-        // add to local state
-        setLinkedSuperCats((prev) => [...prev, superCatId]);
+        setLinkedIds((prev) => [...prev, superCategoryId]);
       }
-    } catch (error) {
-      console.error("Error toggling link:", error);
+    } catch (err) {
+      console.error("Error toggling link:", err);
     }
   }
 
   return (
-    <div style={{ padding: 16 }}>
-      <h1>Edit Category #{categoryId}</h1>
-      <form onSubmit={handleUpdate}>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Category name"
-        />
-        <button type="submit">Save</button>
-      </form>
+    <div style={{ minHeight: "100vh", background: "#1a1a1a", padding: "2rem" }}>
+      <div style={{ maxWidth: 600, margin: "0 auto", color: "#f0f0f0" }}>
+        <button
+          onClick={() => router.push("/category")}
+          style={{
+            marginBottom: "1rem",
+            background: "#444",
+            color: "#fff",
+            border: "none",
+            padding: "0.5rem 1rem",
+            cursor: "pointer",
+            borderRadius: 4,
+          }}
+        >
+          &larr; Back to Categories
+        </button>
 
-      <button onClick={handleDelete}>Delete</button>
+        <div
+          style={{
+            background: "#2c2c2c",
+            borderRadius: 8,
+            padding: "1rem",
+            marginBottom: "1rem",
+          }}
+        >
+          <h1 style={{ marginTop: 0 }}>Edit Category #{categoryId}</h1>
 
-      <hr />
-
-      <h2>Link with SuperCategories</h2>
-      {superCats.map((sc) => {
-        const isLinked = linkedSuperCats.includes(sc.id);
-        return (
-          <div key={sc.id}>
-            <label>
+          {/* Update form */}
+          <form onSubmit={handleUpdate} style={{ marginBottom: "1rem" }}>
+            <div style={{ display: "flex", gap: "0.5rem" }}>
               <input
-                type="checkbox"
-                checked={isLinked}
-                onChange={() => toggleLink(sc.id, isLinked)}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Category name"
+                style={{
+                  flex: 1,
+                  padding: "0.5rem",
+                  border: "1px solid #555",
+                  borderRadius: 4,
+                  background: "#333",
+                  color: "#f0f0f0",
+                }}
               />
-              {sc.name}
-            </label>
-          </div>
-        );
-      })}
+              <button
+                type="submit"
+                style={{
+                  background: "#0070f3",
+                  color: "#fff",
+                  border: "none",
+                  padding: "0.5rem 1rem",
+                  borderRadius: 4,
+                  cursor: "pointer",
+                }}
+              >
+                Save
+              </button>
+            </div>
+          </form>
+
+          {/* Delete button */}
+          <button
+            onClick={handleDelete}
+            style={{
+              background: "red",
+              border: "none",
+              color: "#fff",
+              padding: "0.5rem 1rem",
+              borderRadius: 4,
+              cursor: "pointer",
+            }}
+          >
+            Delete
+          </button>
+        </div>
+
+        <div
+          style={{
+            background: "#2c2c2c",
+            borderRadius: 8,
+            padding: "1rem",
+          }}
+        >
+          <h2 style={{ marginTop: 0 }}>Link with SuperCategories</h2>
+          {superCats.map((sc) => {
+            const checked = linkedIds.includes(sc.id);
+            return (
+              <div key={sc.id} style={{ marginBottom: "0.5rem" }}>
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => toggleLink(sc.id, checked)}
+                    style={{ transform: "scale(1.2)" }}
+                  />
+                  <span>{sc.name}</span>
+                </label>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
