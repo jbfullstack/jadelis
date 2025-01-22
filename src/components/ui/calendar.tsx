@@ -13,7 +13,7 @@ export function Calendar({
       showOutsideDays={showOutsideDays}
       className={className}
       classNames={{
-        months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+        months: "flex flex-col md:flex-row space-y-4 md:space-x-4 md:space-y-0",
         month: "space-y-4",
         caption: "flex justify-center pt-1 relative items-center h-10",
         caption_label: "text-sm font-medium text-white",
@@ -41,8 +41,8 @@ export function Calendar({
       }}
       captionLayout="dropdown"
       {...props}
-      fromYear={1900}
-      toYear={2025}
+      // fromYear={1900}
+      // toYear={2025}
     />
   );
 }

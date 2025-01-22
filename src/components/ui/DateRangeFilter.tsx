@@ -1,4 +1,4 @@
-import { Calendar } from "./calendar"; // Adjust based on your import path
+import { Calendar } from "./calendar";
 import { DateRange } from "react-day-picker";
 
 interface DateRangeFilterProps {
@@ -31,34 +31,31 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
   };
 
   const modifiersClassNames = {
-    selected: "day-selected", // Apply 'day-selected' class to matching dates
+    selected: "day-selected",
   };
 
   return (
     <div className="calendar-container">
       <h3 className="calendar-title">{label}</h3>
-      <div className="grid grid-cols-2 gap-4">
-        {/* After Date */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="text-sm">Après le</label>
           <Calendar
             mode="single"
             selected={range?.from || undefined}
             onSelect={(date) => handleDateSelect(date, "from")}
-            modifiers={modifiersForFromCalendar} // Pass specific modifiers
-            modifiersClassNames={modifiersClassNames} // Pass class names
+            modifiers={modifiersForFromCalendar}
+            modifiersClassNames={modifiersClassNames}
           />
         </div>
-
-        {/* Before Date */}
         <div>
           <label className="text-sm">Avant le</label>
           <Calendar
             mode="single"
             selected={range?.to || undefined}
             onSelect={(date) => handleDateSelect(date, "to")}
-            modifiers={modifiersForToCalendar} // Pass specific modifiers
-            modifiersClassNames={modifiersClassNames} // Pass class names
+            modifiers={modifiersForToCalendar}
+            modifiersClassNames={modifiersClassNames}
           />
         </div>
       </div>

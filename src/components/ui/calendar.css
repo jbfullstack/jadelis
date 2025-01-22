@@ -4,3 +4,17 @@
   border-radius: 10%; /* Make it circular */
   font-weight: bold;
 }
+
+.calendar-container {
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  .calendar-container {
+    padding: 1rem;
+  }
+
+  .grid {
+    grid-template-columns: 1fr !important;
+  }
+}
