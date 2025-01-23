@@ -2,6 +2,14 @@ import { NextResponse } from "next/server";
 import { pool } from "@/lib/db";
 import { computeLifePathNumber } from "@/utils/numberCalculator";
 
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+    2,
+    "0"
+  )}-${String(date.getDate()).padStart(2, "0")}`;
+};
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -29,9 +37,9 @@ export async function POST(request: Request) {
           number,
           is_moral_person
         FROM persons
-        WHERE birth_date = $1;
+        WHERE birth_date = $1::date;
       `;
-      const checkResult = await pool.query(checkQuery, [new Date(birthDate)]);
+      const checkResult = await pool.query(checkQuery, [formatDate(birthDate)]);
 
       if (checkResult.rows.length > 0) {
         return NextResponse.json(
@@ -46,20 +54,21 @@ export async function POST(request: Request) {
     }
 
     // Step 2: Compute the life path number
-    const lifePathNumber = computeLifePathNumber(birthDate);
+    // Note: computeLifePathNumber should receive the date string in YYYY-MM-DD format
+    const lifePathNumber = computeLifePathNumber(formatDate(birthDate));
 
     // Step 3: Insert the new person into the database
     const personQuery = `
       INSERT INTO persons (first_name, last_name, description, birth_date, death_date, number, is_moral_person)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      VALUES ($1, $2, $3, $4::date, $5::date, $6, $7)
       RETURNING id;
     `;
     const personValues = [
       firstName,
       lastName,
       description,
-      new Date(birthDate),
-      deathDate ? new Date(deathDate) : null,
+      formatDate(birthDate),
+      deathDate ? formatDate(deathDate) : null,
       lifePathNumber,
       isMoralPerson,
     ];
@@ -140,34 +149,26 @@ export async function GET(request: Request) {
     }
 
     // Days filter
-    if (params.has("birthDays")) {
-      const birthDays = params.get("birthDays")!.split(",").map(Number);
-      query += ` AND EXTRACT(DAY FROM p.birth_date) = ANY($${valueIndex}::int[])`;
-      values.push(birthDays);
-      valueIndex++;
-    }
-
-    // Birth date range filter
     if (params.has("birthDateAfter")) {
-      query += ` AND p.birth_date >= $${valueIndex}`;
-      values.push(params.get("birthDateAfter")!);
+      query += ` AND p.birth_date >= $${valueIndex}::date`;
+      values.push(formatDate(params.get("birthDateAfter")!));
       valueIndex++;
     }
     if (params.has("birthDateBefore")) {
-      query += ` AND p.birth_date <= $${valueIndex}`;
-      values.push(params.get("birthDateBefore")!);
+      query += ` AND p.birth_date <= $${valueIndex}::date`;
+      values.push(formatDate(params.get("birthDateBefore")!));
       valueIndex++;
     }
 
-    // Death date range filter
+    // Death date range filter with proper date handling
     if (params.has("deathDateAfter")) {
-      query += ` AND p.death_date >= $${valueIndex}`;
-      values.push(params.get("deathDateAfter")!);
+      query += ` AND p.death_date >= $${valueIndex}::date`;
+      values.push(formatDate(params.get("deathDateAfter")!));
       valueIndex++;
     }
     if (params.has("deathDateBefore")) {
-      query += ` AND p.death_date <= $${valueIndex}`;
-      values.push(params.get("deathDateBefore")!);
+      query += ` AND p.death_date <= $${valueIndex}::date`;
+      values.push(formatDate(params.get("deathDateBefore")!));
       valueIndex++;
     }
 
