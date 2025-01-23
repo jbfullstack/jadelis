@@ -7,12 +7,14 @@ import { CategorySelector } from "./ui/CategorySelector";
 import { ErrorList } from "./ui/ErrorList";
 import { ConfirmationModal } from "./ui/ConfirmationModal";
 import type { Match, PersonData } from "@/types";
+import CheckboxField from "./ui/CheckboxField";
 
 export const PersonForm = () => {
   const [formData, setFormData] = useState<PersonData>({
     firstName: "",
     lastName: "",
     description: "",
+    isMoralPerson: false,
     birthDate: undefined,
     deathDate: undefined,
     selectedCategories: [],
@@ -125,6 +127,7 @@ export const PersonForm = () => {
       firstName: "",
       lastName: "",
       description: "",
+      isMoralPerson: false,
       birthDate: undefined,
       deathDate: undefined,
       selectedCategories: [],
@@ -140,26 +143,47 @@ export const PersonForm = () => {
     <div className="space-y-6 mx-auto max-w-4xl px-4 text-white">
       <form onSubmit={handleSubmit} className="space-y-4">
         {errors.length > 0 && <ErrorList errors={errors} />}
-        <div className="grid grid-cols-2 gap-6">
-          <FormField
-            label="Nom"
-            placeholder="Nom"
-            value={formData.lastName}
-            onChange={(value) => setFormData({ ...formData, lastName: value })}
-          />
-          <FormField
-            label="Prénom"
-            placeholder="Prénom"
-            value={formData.firstName}
-            onChange={(value) => setFormData({ ...formData, firstName: value })}
-          />
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-10 sm:items-center">
+          <div className="sm:col-span-4">
+            <FormField
+              label="Nom"
+              placeholder="Nom"
+              value={formData.lastName}
+              onChange={(value) =>
+                setFormData({ ...formData, lastName: value })
+              }
+            />
+          </div>
+          <div className="sm:col-span-4">
+            <FormField
+              label="Prénom"
+              placeholder="Prénom"
+              value={formData.firstName}
+              onChange={(value) =>
+                setFormData({ ...formData, firstName: value })
+              }
+            />
+          </div>
+          <div className="sm:col-span-2 sm:flex sm:items-center sm:justify-center">
+            <CheckboxField
+              label="Moral"
+              value={formData.isMoralPerson}
+              onChange={(checked) =>
+                setFormData({ ...formData, isMoralPerson: checked })
+              }
+              title="Une personne morale désigne une entité juridique, comme une entreprise, une association ou une organisation, qui possède des droits et des obligations distincts de ceux des individus qui la composent."
+              className="sm:relative sm:top-3"
+            />
+          </div>
         </div>
+
         <FormField
           label="Description"
           placeholder="Description"
           value={formData.description ?? ""}
           onChange={(value) => setFormData({ ...formData, description: value })}
         />
+
         <div className="grid grid-cols-2 gap-6">
           <div>
             <DateField

@@ -12,6 +12,7 @@ export async function POST(request: Request) {
       birthDate,
       deathDate,
       selectedCategories,
+      isMoralPerson,
       confirm,
     } = body;
 
@@ -25,7 +26,8 @@ export async function POST(request: Request) {
           COALESCE(description, '') AS description,
           birth_date,
           death_date,
-          number
+          number,
+          isMoralPerson
         FROM persons
         WHERE birth_date = $1;
       `;
@@ -48,8 +50,8 @@ export async function POST(request: Request) {
 
     // Step 3: Insert the new person into the database
     const personQuery = `
-      INSERT INTO persons (first_name, last_name, description, birth_date, death_date, number)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO persons (first_name, last_name, description, birth_date, death_date, number, isMoralPerson)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING id;
     `;
     const personValues = [
@@ -59,6 +61,7 @@ export async function POST(request: Request) {
       new Date(birthDate),
       deathDate ? new Date(deathDate) : null,
       lifePathNumber,
+      isMoralPerson,
     ];
 
     const personResult = await pool.query(personQuery, personValues);
@@ -94,7 +97,7 @@ export async function GET(request: Request) {
     const params = url.searchParams;
 
     let query = `
-      SELECT p.id, p.first_name, p.last_name, p.description, p.birth_date, p.death_date, p.number
+      SELECT p.id, p.first_name, p.last_name, p.description, p.birth_date, p.death_date, p.number, p.isMoralPerson,
       FROM persons p
       LEFT JOIN person_categories pc ON p.id = pc.person_id
       LEFT JOIN categories c ON pc.category_id = c.id
@@ -122,13 +125,21 @@ export async function GET(request: Request) {
       valueIndex++;
     }
 
-    // Days filter
-    if (params.has("birthDays")) {
-      const birthDays = params.get("birthDays")!.split(",").map(Number);
-      query += ` AND EXTRACT(DAY FROM p.birth_date) = ANY($${valueIndex}::int[])`;
-      values.push(birthDays);
+    // Moral person filter
+    if (params.has("isMoralPerson")) {
+      const numbers = params.get("numbers")!.split(",").map(Number);
+      query += ` AND p.number = ANY($${valueIndex}::int[])`;
+      values.push(numbers);
       valueIndex++;
     }
+
+    // // Days filter
+    // if (params.has("birthDays")) {
+    //   const birthDays = params.get("birthDays")!.split(",").map(Number);
+    //   query += ` AND EXTRACT(DAY FROM p.birth_date) = ANY($${valueIndex}::int[])`;
+    //   values.push(birthDays);
+    //   valueIndex++;
+    // }
 
     // Birth date range filter
     if (params.has("birthDateAfter")) {

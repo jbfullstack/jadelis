@@ -15,6 +15,7 @@ export interface PersonData {
   firstName: string;
   lastName: string;
   description?: string;
+  isMoralPerson: boolean;
   birthDate: Date | undefined; // Changed from Date | null
   deathDate: Date | undefined; // Changed from Date | null
   selectedCategories: number[];
@@ -24,7 +25,8 @@ export interface Person {
   id: number;
   first_name: string;
   last_name: string;
-  description: string; // Assurez-vous que `description` est obligatoire
+  description: string;
+  isMoralPerson: boolean;
   birth_date: string;
   death_date: string | null;
   number: number;
@@ -35,6 +37,7 @@ export interface PersonResult {
   first_name: string;
   last_name: string;
   description?: string;
+  isMoralPerson: boolean;
   birth_date?: string;
   death_date?: string;
   number: number;
