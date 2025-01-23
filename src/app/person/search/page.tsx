@@ -158,7 +158,7 @@ export default function SearchPersonPage() {
       style={{
         background: "#1a1a1a",
         minHeight: "100vh",
-        color: "#f0f0f0",
+        color: "#fff",
         padding: "2rem",
       }}
     >
@@ -190,6 +190,7 @@ export default function SearchPersonPage() {
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
+                  marginTop: "1rem",
                   marginBottom: "1rem",
                 }}
               >
