@@ -166,7 +166,7 @@ export const PersonForm = () => {
           </div>
           <div className="sm:col-span-2 sm:flex sm:items-center sm:justify-center">
             <CheckboxField
-              label="Moral"
+              label="Morale"
               value={formData.isMoralPerson}
               onChange={(checked) =>
                 setFormData({ ...formData, isMoralPerson: checked })

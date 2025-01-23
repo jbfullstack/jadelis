@@ -27,7 +27,7 @@ export async function POST(request: Request) {
           birth_date,
           death_date,
           number,
-          isMoralPerson
+          is_moral_person
         FROM persons
         WHERE birth_date = $1;
       `;
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
 
     // Step 3: Insert the new person into the database
     const personQuery = `
-      INSERT INTO persons (first_name, last_name, description, birth_date, death_date, number, isMoralPerson)
+      INSERT INTO persons (first_name, last_name, description, birth_date, death_date, number, is_moral_person)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING id;
     `;
@@ -97,7 +97,7 @@ export async function GET(request: Request) {
     const params = url.searchParams;
 
     let query = `
-      SELECT p.id, p.first_name, p.last_name, p.description, p.birth_date, p.death_date, p.number, p.isMoralPerson,
+      SELECT p.id, p.first_name, p.last_name, p.description, p.birth_date, p.death_date, p.number, p.is_moral_person
       FROM persons p
       LEFT JOIN person_categories pc ON p.id = pc.person_id
       LEFT JOIN categories c ON pc.category_id = c.id
@@ -127,19 +127,25 @@ export async function GET(request: Request) {
 
     // Moral person filter
     if (params.has("isMoralPerson")) {
-      const numbers = params.get("numbers")!.split(",").map(Number);
-      query += ` AND p.number = ANY($${valueIndex}::int[])`;
-      values.push(numbers);
-      valueIndex++;
+      const isMoralPerson = Number(params.get("isMoralPerson"));
+
+      if (isMoralPerson === 0) {
+        query += ` AND p.is_moral_person = FALSE`;
+      } else if (isMoralPerson === 1) {
+        query += ` AND p.is_moral_person = TRUE`;
+      }
+    } else {
+      console.log("no parameter isMoralPerson !!");
+      console.log(params);
     }
 
-    // // Days filter
-    // if (params.has("birthDays")) {
-    //   const birthDays = params.get("birthDays")!.split(",").map(Number);
-    //   query += ` AND EXTRACT(DAY FROM p.birth_date) = ANY($${valueIndex}::int[])`;
-    //   values.push(birthDays);
-    //   valueIndex++;
-    // }
+    // Days filter
+    if (params.has("birthDays")) {
+      const birthDays = params.get("birthDays")!.split(",").map(Number);
+      query += ` AND EXTRACT(DAY FROM p.birth_date) = ANY($${valueIndex}::int[])`;
+      values.push(birthDays);
+      valueIndex++;
+    }
 
     // Birth date range filter
     if (params.has("birthDateAfter")) {

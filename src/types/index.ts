@@ -6,6 +6,7 @@ export interface SearchData {
   name: string;
   numbers: number[];
   birthDays: number[];
+  isMoralPerson: number;
   birthDateRange?: DateRange; // Use optional
   deathDateRange?: DateRange; // Use optional
   selectedCategories: number[];

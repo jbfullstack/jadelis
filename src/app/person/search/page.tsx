@@ -96,6 +96,9 @@ export default function SearchPersonPage() {
     if (searchData.numbers.length > 0) {
       queryParams.append("numbers", searchData.numbers.join(","));
     }
+    if (searchData.isMoralPerson !== -1) {
+      queryParams.append("isMoralPerson", String(searchData.isMoralPerson));
+    }
     if (searchData.birthDays.length > 0) {
       queryParams.append("birthDays", searchData.birthDays.join(","));
     }

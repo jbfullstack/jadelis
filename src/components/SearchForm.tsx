@@ -4,6 +4,7 @@ import { useState, useEffect, FormEvent } from "react";
 import { Spinner } from "./ui/Spinner";
 import { SearchFormInput } from "./ui/SearchFormInput";
 import { LifePathSelector } from "./ui/LifePathSelector";
+import { IsMoralSelector } from "./ui/IsMoralSelector";
 import { DaySelector } from "./ui/DaySelector";
 import { DateRangeFilter } from "./ui/DateRangeFilter";
 import type { SearchData } from "@/types";
@@ -22,6 +23,7 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
     name: "",
     numbers: [],
     birthDays: [],
+    isMoralPerson: -1,
     birthDateRange: undefined,
     deathDateRange: undefined,
     selectedCategories: [],
@@ -56,6 +58,7 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
     setLoading(true);
 
     try {
+      console.log("searchData sent to backend:", searchData);
       await onSearch(searchData); // Await search process to ensure spinner hides correctly
     } catch (error) {
       console.error("Search failed:", error);
@@ -90,6 +93,12 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
         <LifePathSelector
           selected={searchData.numbers}
           onChange={(numbers) => setSearchData({ ...searchData, numbers })}
+        />
+        <IsMoralSelector
+          value={searchData.isMoralPerson}
+          onChange={(value) => {
+            setSearchData({ ...searchData, isMoralPerson: value });
+          }}
         />
         <DaySelector
           selectedDays={searchData.birthDays} // Pass birthDays as selectedDays
