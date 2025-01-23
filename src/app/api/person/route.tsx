@@ -4,10 +4,7 @@ import { computeLifePathNumber } from "@/utils/numberCalculator";
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
-    2,
-    "0"
-  )}-${String(date.getDate()).padStart(2, "0")}`;
+  return date.toISOString().split("T")[0];
 };
 
 export async function POST(request: Request) {

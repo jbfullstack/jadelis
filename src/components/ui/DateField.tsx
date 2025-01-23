@@ -1,4 +1,4 @@
-import { Calendar } from "./calendar"; // Adjust the import path based on your structure
+import { Calendar } from "./calendar";
 import "./calendar.css";
 
 interface DateFieldProps {
@@ -12,13 +12,20 @@ export const DateField: React.FC<DateFieldProps> = ({
   selectedDate,
   onSelect,
 }) => {
-  const modifiers = {
-    selected: (date: Date) =>
-      selectedDate ? date.getTime() === selectedDate.getTime() : false,
-  };
-
-  const modifiersClassNames = {
-    selected: "day-selected", // Use the same class for consistency
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      // Force une nouvelle date avec le fuseau horaire local en ajoutant l'offset
+      const offset = date.getTimezoneOffset();
+      const localDate = new Date(
+        date.getTime() + offset * 60 * 1000 + 24 * 60 * 60 * 1000
+      );
+      console.log("Original selected date:", date);
+      console.log("Timezone offset:", offset);
+      console.log("Adjusted local date:", localDate);
+      onSelect(localDate);
+    } else {
+      onSelect(undefined);
+    }
   };
 
   return (
@@ -27,9 +34,10 @@ export const DateField: React.FC<DateFieldProps> = ({
       <Calendar
         mode="single"
         selected={selectedDate || undefined}
-        onSelect={onSelect}
-        modifiers={modifiers} // Highlight the selected date
-        modifiersClassNames={modifiersClassNames} // Apply custom class
+        onSelect={handleDateSelect}
+        classNames={{
+          day_selected: "bg-blue-600 text-white hover:bg-blue-700",
+        }}
       />
     </div>
   );

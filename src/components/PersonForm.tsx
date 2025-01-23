@@ -175,9 +175,10 @@ export const PersonForm = () => {
             <DateField
               label="Date de naissance"
               selectedDate={formData.birthDate}
-              onSelect={(date) =>
-                setFormData({ ...formData, birthDate: date || undefined })
-              }
+              onSelect={(date) => {
+                console.log("PersonForm receiving birthdate:", date);
+                setFormData({ ...formData, birthDate: date || undefined });
+              }}
             />
             <p className="mt-2 text-sm text-gray-400">
               Date sélectionnée : {formatDate(formData.birthDate)}
