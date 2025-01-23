@@ -1,0 +1,50 @@
+name: Weekly Neon Branch Backup
+on:
+  schedule:
+    - cron: "0 0 * * 0" # Runs at midnight every Sunday
+  workflow_dispatch: # Allows manual trigger
+
+env:
+  NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+  NEON_PROJECT_ID: ${{ secrets.NEON_PROJECT_ID }}
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Create new branch backup
+        run: |
+          # Create new branch with timestamp
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          BRANCH_NAME="backup-${TIMESTAMP}"
+
+          curl -X POST "https://console.neon.tech/api/v2/projects/${NEON_PROJECT_ID}/branches" \
+            -H "Authorization: Bearer ${NEON_API_KEY}" \
+            -H "Accept: application/json" \
+            -H "Content-Type: application/json" \
+            -d "{\"branch\": {\"name\": \"${BRANCH_NAME}\"}}"
+
+      - name: List and clean old branches
+        run: |
+          # Get all backup branches
+          BRANCHES=$(curl -s "https://console.neon.tech/api/v2/projects/${NEON_PROJECT_ID}/branches" \
+            -H "Authorization: Bearer ${NEON_API_KEY}" \
+            -H "Accept: application/json")
+
+          # Filter backup branches and sort by creation time
+          echo "$BRANCHES" | jq -r '.branches[] | select(.name | startswith("backup-")) | 
+            {name: .name, created_at: .created_at} | 
+            @json' | sort -r | \
+          while IFS= read -r branch; do
+            branch_name=$(echo "$branch" | jq -r '.name')
+            count=$(echo "$BRANCHES" | jq -r '[.branches[] | select(.name | startswith("backup-"))] | length')
+            
+            # If we have more than 4 backup branches, delete the oldest ones
+            if [ "$count" -gt 4 ]; then
+              curl -X DELETE "https://console.neon.tech/api/v2/projects/${NEON_PROJECT_ID}/branches/${branch_name}" \
+                -H "Authorization: Bearer ${NEON_API_KEY}"
+              echo "Deleted old branch: ${branch_name}"
+            fi
+          done
