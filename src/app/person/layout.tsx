@@ -69,6 +69,21 @@ export default function PersonLayout({
           >
             Rechercher
           </button>
+          <button
+            style={{
+              background: "transparent",
+              color: "#fff",
+              border: "none",
+              padding: "0.5rem 1rem",
+              cursor: "pointer",
+              fontSize: "1rem",
+              borderRadius: 4,
+              transition: "background 0.3s",
+            }}
+            onClick={() => handleNavigation("/category")}
+          >
+            Categories
+          </button>
         </nav>
       </header>
       <main

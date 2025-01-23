@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface SuperCategory {
   id: number;
@@ -14,6 +15,12 @@ export default function SuperCategoryPage() {
   useEffect(() => {
     refetchSuperCats();
   }, []);
+
+  const router = useRouter();
+
+  const handleNavigation = (path: string) => {
+    router.push(path);
+  };
 
   function refetchSuperCats() {
     fetch("/api/supercategories")
@@ -63,6 +70,23 @@ export default function SuperCategoryPage() {
         }}
       >
         <h1 style={{ marginTop: 0 }}>SuperCategories</h1>
+
+        <div style={{ padding: "2rem" }}>
+          <button
+            type="submit"
+            style={{
+              background: "#207020",
+              color: "#fff",
+              border: "none",
+              padding: "0.5rem 1rem",
+              borderRadius: 4,
+              cursor: "pointer",
+            }}
+            onClick={() => handleNavigation("/category")}
+          >
+            ➢ Categories
+          </button>
+        </div>
 
         <form
           onSubmit={handleCreate}
