@@ -7,6 +7,7 @@ import { LifePathSelector } from "./ui/LifePathSelector";
 import { IsMoralSelector } from "./ui/IsMoralSelector";
 import { DaySelector } from "./ui/DaySelector";
 import { DateRangeFilter } from "./ui/DateRangeFilter";
+import { SearchFormCategorySelector } from "./ui/SearchFormCategorySelector"; // Nouveau import
 import type { SearchData } from "@/types";
 
 interface Category {
@@ -30,18 +31,17 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
   };
 
   const [searchData, setSearchData] = useState<SearchData>(initialSearchData);
-
   const [categories, setCategories] = useState<Record<string, Category[]>>({});
   const [loading, setLoading] = useState(false);
 
-  // Fetch categories from the backend
+  // Fetch categories reste identique
   useEffect(() => {
     async function fetchCategories() {
       try {
         const response = await fetch("/api/categories");
         const data = await response.json();
         if (data.success) {
-          setCategories(data.categories); // Update state with fetched categories
+          setCategories(data.categories);
         } else {
           console.error("Failed to fetch categories:", data.error);
         }
@@ -59,7 +59,7 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
 
     try {
       console.log("searchData sent to backend:", searchData);
-      await onSearch(searchData); // Await search process to ensure spinner hides correctly
+      await onSearch(searchData);
     } catch (error) {
       console.error("Search failed:", error);
     } finally {
@@ -101,7 +101,7 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
           }}
         />
         <DaySelector
-          selectedDays={searchData.birthDays} // Pass birthDays as selectedDays
+          selectedDays={searchData.birthDays}
           onChange={(days) => setSearchData({ ...searchData, birthDays: days })}
         />
         <div className="grid grid-cols-2 gap-6">
@@ -120,43 +120,14 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
             }
           />
         </div>
-        {/* Categories Section */}
-        <div>
-          <label className="block mb-2">Catégories</label>
-          <div className="border border-gray-600 rounded p-4 max-h-[300px] overflow-y-auto">
-            {Object.entries(categories).map(([superCategory, categoryList]) => (
-              <div key={superCategory} className="mb-4">
-                <h3 className="text-lg font-semibold">{superCategory}</h3>
-                {categoryList.map((category) => (
-                  <label
-                    key={category.id}
-                    className="flex items-center space-x-2"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={searchData.selectedCategories.includes(
-                        category.id
-                      )}
-                      onChange={(e) => {
-                        const selected = e.target.checked
-                          ? [...searchData.selectedCategories, category.id]
-                          : searchData.selectedCategories.filter(
-                              (id) => id !== category.id
-                            );
-                        setSearchData({
-                          ...searchData,
-                          selectedCategories: selected,
-                        });
-                      }}
-                      className="form-checkbox h-4 w-4 text-blue-600"
-                    />
-                    <span>{category.name}</span>
-                  </label>
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
+
+        {/* Nouveau composant de sélection des catégories */}
+        <SearchFormCategorySelector
+          categories={categories}
+          searchData={searchData}
+          setSearchData={setSearchData}
+        />
+
         <div className="flex space-x-4">
           <button
             type="submit"

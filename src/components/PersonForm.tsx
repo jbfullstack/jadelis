@@ -3,7 +3,7 @@
 import { useState, useEffect, FormEvent } from "react";
 import { FormField } from "./ui/FormField";
 import { DateField } from "./ui/DateField";
-import { CategorySelector } from "./ui/CategorySelector";
+import { CategoriesSelector } from "./ui/CategorySelector";
 import { ErrorList } from "./ui/ErrorList";
 import { ConfirmationModal } from "./ui/ConfirmationModal";
 import type { Match, PersonData } from "@/types";
@@ -210,7 +210,7 @@ export const PersonForm = () => {
             </p>
           </div>
         </div>
-        <CategorySelector
+        <CategoriesSelector
           categories={categories}
           selectedCategories={formData.selectedCategories}
           onCategoryChange={(id, selected) => {
