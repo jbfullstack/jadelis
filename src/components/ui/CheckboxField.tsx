@@ -25,7 +25,9 @@ const CheckboxField: React.FC<CheckboxFieldProps> = ({
           className="h-6 w-6 border-gray-300 rounded focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
           title={title}
         />
-        <span className="text-gray-700">{label}</span>
+        <span className="text-gray-700" title={title}>
+          {label}
+        </span>
       </label>
     </div>
   );
