@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, FormEvent } from "react";
+import { useState, FormEvent } from "react";
 import { FormField } from "./ui/FormField";
 import { DateField } from "./ui/DateField";
 import { CategoriesSelector } from "./ui/CategorySelector";
@@ -8,8 +8,11 @@ import { ErrorList } from "./ui/ErrorList";
 import { ConfirmationModal } from "./ui/ConfirmationModal";
 import type { Match, PersonData } from "@/types";
 import CheckboxField from "./ui/CheckboxField";
+import { useCategories } from "../hooks/useCategories";
 
 export const PersonForm = () => {
+  const { cachedCategories: categories, categoriesLoading } = useCategories();
+
   const [formData, setFormData] = useState<PersonData>({
     firstName: "",
     lastName: "",
@@ -20,29 +23,9 @@ export const PersonForm = () => {
     selectedCategories: [],
   });
 
-  const [categories, setCategories] = useState<
-    Record<string, { id: number; name: string }[]>
-  >({});
   const [errors, setErrors] = useState<string[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [showConfirmation, setShowConfirmation] = useState(false);
-
-  useEffect(() => {
-    async function fetchCategories() {
-      try {
-        const response = await fetch("/api/categories");
-        const data = await response.json();
-        if (data.success) {
-          setCategories(data.categories);
-        } else {
-          console.error("Failed to fetch categories:", data.error);
-        }
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      }
-    }
-    fetchCategories();
-  }, []);
 
   const validateForm = () => {
     const validationErrors: string[] = [];
@@ -141,6 +124,9 @@ export const PersonForm = () => {
 
   return (
     <div className="space-y-6 mx-auto max-w-4xl px-4 text-white">
+      {categoriesLoading && (
+        <div className="text-center py-4">Chargement des catégories...</div>
+      )}
       <form onSubmit={handleSubmit} className="space-y-4">
         {errors.length > 0 && <ErrorList errors={errors} />}
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-10 sm:items-center">
@@ -210,16 +196,22 @@ export const PersonForm = () => {
             </p>
           </div>
         </div>
-        <CategoriesSelector
-          categories={categories}
-          selectedCategories={formData.selectedCategories}
-          onCategoryChange={(id, selected) => {
-            const updatedCategories = selected
-              ? [...formData.selectedCategories, id]
-              : formData.selectedCategories.filter((catId) => catId !== id);
-            setFormData({ ...formData, selectedCategories: updatedCategories });
-          }}
-        />
+
+        {!categoriesLoading && (
+          <CategoriesSelector
+            categories={categories}
+            selectedCategories={formData.selectedCategories}
+            onCategoryChange={(id, selected) => {
+              const updatedCategories = selected
+                ? [...formData.selectedCategories, id]
+                : formData.selectedCategories.filter((catId) => catId !== id);
+              setFormData({
+                ...formData,
+                selectedCategories: updatedCategories,
+              });
+            }}
+          />
+        )}
 
         <button
           type="submit"

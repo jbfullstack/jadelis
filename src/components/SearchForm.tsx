@@ -1,25 +1,24 @@
 "use client";
 
-import { useState, useEffect, FormEvent } from "react";
+import { useState, FormEvent } from "react";
 import { Spinner } from "./ui/Spinner";
 import { SearchFormInput } from "./ui/SearchFormInput";
 import { LifePathSelector } from "./ui/LifePathSelector";
 import { IsMoralSelector } from "./ui/IsMoralSelector";
 import { DaySelector } from "./ui/DaySelector";
 import { DateRangeFilter } from "./ui/DateRangeFilter";
-import { SearchFormCategorySelector } from "./ui/SearchFormCategorySelector"; // Nouveau import
+import { SearchFormCategorySelector } from "./ui/SearchFormCategorySelector";
 import type { SearchData } from "@/types";
-
-interface Category {
-  id: number;
-  name: string;
-}
+import { useCategories } from "../hooks/useCategories";
 
 interface SearchFormProps {
   onSearch: (data: SearchData) => void;
 }
 
 export const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
+  // Utilisation du hook de catégories
+  const { cachedCategories: categories, categoriesLoading } = useCategories();
+
   const initialSearchData: SearchData = {
     name: "",
     numbers: [],
@@ -31,27 +30,7 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
   };
 
   const [searchData, setSearchData] = useState<SearchData>(initialSearchData);
-  const [categories, setCategories] = useState<Record<string, Category[]>>({});
   const [loading, setLoading] = useState(false);
-
-  // Fetch categories reste identique
-  useEffect(() => {
-    async function fetchCategories() {
-      try {
-        const response = await fetch("/api/categories");
-        const data = await response.json();
-        if (data.success) {
-          setCategories(data.categories);
-        } else {
-          console.error("Failed to fetch categories:", data.error);
-        }
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      }
-    }
-
-    fetchCategories();
-  }, []);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -73,7 +52,7 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
 
   return (
     <div>
-      {loading && (
+      {(loading || categoriesLoading) && (
         <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
           <Spinner />
         </div>
@@ -121,7 +100,6 @@ export const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
           />
         </div>
 
-        {/* Nouveau composant de sélection des catégories */}
         <SearchFormCategorySelector
           categories={categories}
           searchData={searchData}
