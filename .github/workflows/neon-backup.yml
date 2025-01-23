@@ -1,8 +1,8 @@
 name: Weekly Neon Branch Backup
 on:
   schedule:
-    - cron: "0 0 * * 0" # Runs at midnight every Sunday
-  workflow_dispatch: # Allows manual trigger
+    - cron: "0 0 * * 0"
+  workflow_dispatch:
 
 env:
   NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
@@ -14,37 +14,40 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
       - name: Create new branch backup
         run: |
-          # Create new branch with timestamp
           TIMESTAMP=$(date +%Y%m%d-%H%M%S)
           BRANCH_NAME="backup-${TIMESTAMP}"
 
-          curl -X POST "https://console.neon.tech/api/v2/projects/${NEON_PROJECT_ID}/branches" \
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+            "https://console.neon.tech/api/v2/projects/${NEON_PROJECT_ID}/branches" \
             -H "Authorization: Bearer ${NEON_API_KEY}" \
             -H "Accept: application/json" \
             -H "Content-Type: application/json" \
-            -d "{\"branch\": {\"name\": \"${BRANCH_NAME}\"}}"
+            -d "{\"branch\": {\"name\": \"${BRANCH_NAME}\"}}")
+
+          HTTP_STATUS=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n-1)
+
+          echo "Response body: $BODY"
+          echo "Status code: $HTTP_STATUS"
+
+          if [ "$HTTP_STATUS" -ne 201 ] && [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "Failed to create branch"
+            exit 1
+          fi
 
       - name: List and clean old branches
         run: |
-          # Get all backup branches
-          BRANCHES=$(curl -s "https://console.neon.tech/api/v2/projects/${NEON_PROJECT_ID}/branches" \
+          BRANCHES_RESPONSE=$(curl -s \
+            "https://console.neon.tech/api/v2/projects/${NEON_PROJECT_ID}/branches" \
             -H "Authorization: Bearer ${NEON_API_KEY}" \
             -H "Accept: application/json")
 
-          # Filter backup branches and sort by creation time
-          echo "$BRANCHES" | jq -r '.branches[] | select(.name | startswith("backup-")) | 
-            {name: .name, created_at: .created_at} | 
-            @json' | sort -r | \
-          while IFS= read -r branch; do
-            branch_name=$(echo "$branch" | jq -r '.name')
-            count=$(echo "$BRANCHES" | jq -r '[.branches[] | select(.name | startswith("backup-"))] | length')
-            
-            # If we have more than 4 backup branches, delete the oldest ones
-            if [ "$count" -gt 4 ]; then
-              curl -X DELETE "https://console.neon.tech/api/v2/projects/${NEON_PROJECT_ID}/branches/${branch_name}" \
-                -H "Authorization: Bearer ${NEON_API_KEY}"
-              echo "Deleted old branch: ${branch_name}"
-            fi
-          done
+          echo "Current branches:"
+          echo "$BRANCHES_RESPONSE" | jq '.'
+
+          # Rest of your cleanup code...

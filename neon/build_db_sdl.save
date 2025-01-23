@@ -1,0 +1,206 @@
+CREATE TABLE IF NOT EXISTS persons (
+    id SERIAL PRIMARY KEY,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    description VARCHAR(100),
+    birth_date DATE NOT NULL,
+    death_date DATE,
+    number INTEGER NOT NULL,
+    is_moral_person BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_persons_birth_date ON persons(birth_date);
+CREATE INDEX IF NOT EXISTS idx_persons_death_date ON persons(death_date);
+CREATE INDEX IF NOT EXISTS idx_persons_number ON persons(number);
+
+CREATE TABLE IF NOT EXISTS categories (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS super_categories (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE
+)
+
+CREATE TABLE IF NOT EXISTS groups (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT
+);
+
+
+-- 
+
+CREATE TABLE IF NOT EXISTS super_category_categories (
+    super_category_id INTEGER REFERENCES super_categories(id),
+    category_id INTEGER REFERENCES categories(id),
+    PRIMARY KEY (super_category_id, category_id)
+);
+
+
+CREATE TABLE IF NOT EXISTS person_categories (
+    person_id INTEGER REFERENCES persons(id),
+    category_id INTEGER REFERENCES categories(id),
+    PRIMARY KEY (person_id, category_id)
+);
+
+
+
+CREATE TABLE IF NOT EXISTS category_groups (
+    category_id INTEGER REFERENCES categories(id),
+    group_id INTEGER REFERENCES groups(id),
+    PRIMARY KEY (category_id, group_id)
+);
+
+
+-- 
+
+INSERT INTO categories (id, name) VALUES
+(1, 'Peinture'),
+(2, 'Sculpture'),
+(3, 'Photographie'),
+(4, 'Arts Numériques'),
+(5, 'Théâtre'),
+(6, 'Danse'),
+(7, 'Opéra'),
+(8, 'Cirque'),
+(9, 'Réalisation'),
+(10, 'Acting'),
+(11, 'Animation'),
+(12, 'Football'),
+(13, 'Basketball'),
+(14, 'Rugby'),
+(15, 'Volleyball'),
+(16, 'MMA'),
+(17, 'Boxe'),
+(18, 'Judo'),
+(19, 'Karaté'),
+(20, 'Formule 1'),
+(21, 'Rally'),
+(22, 'Moto GP'),
+(23, 'Escalade'),
+(24, 'Skateboard'),
+(25, 'Surf'),
+(26, 'Informatique'),
+(27, 'Vendée Globe'),
+(28, 'Littérature'),
+(29, 'Gymnastique'),
+(30, 'Ski'),
+(31, 'Snowboard'),
+(32, 'Escrime'),
+(33, 'Artiste Solo'),
+(34, 'Groupe Musical'),
+(35, 'Chef Cuisinier'),
+(36, 'Pâtissier'),
+(37, 'Conquête Militaire'),
+(38, 'Film'),
+(39, 'Fortune Individuelle'),
+(40, 'Fortune Entreprise');
+
+INSERT INTO super_categories (id, name) VALUES
+(1, 'Art'),
+(2, 'Performance'),
+(3, 'Culture'),
+(4, 'Création'),
+(5, 'Solo'),
+(6, 'Équipe'),
+(7, 'Sport'),
+(8, 'Compétition'),
+(9, 'Performance Physique'),
+(10, 'Science'),
+(11, 'Innovation'),
+(12, 'Recherche'),
+(13, 'Business'),
+(14, 'Leadership'),
+(15, 'Impact Social'),
+(16, 'Musique'),
+(17, 'Fortune'),
+(18, 'Militaire'),
+(19, 'Gastronomie'),
+(20, 'Divertissement'),
+(21, 'Sports d''Hiver');
+
+INSERT INTO groups (id, name, description) VALUES
+(1, 'Arts Visuels', 'Englobe les formes d''art visuel traditionnel et numérique'),
+(2, 'Arts de la Scène', 'Arts performatifs devant un public'),
+(3, 'Cinéma & Audiovisuel', 'Production et performance audiovisuelle'),
+(4, 'Littérature', 'Expression écrite artistique'),
+(5, 'Sports Collectifs', 'Sports pratiqués en équipe'),
+(6, 'Sports Individuels', 'Sports pratiqués en solo'),
+(7, 'Sports de Combat', 'Arts martiaux et sports de combat'),
+(8, 'Sports Mécaniques', 'Sports impliquant des véhicules motorisés'),
+(9, 'Sports Extrêmes', 'Sports à sensations fortes'),
+(10, 'Sciences Fondamentales', 'Recherche scientifique fondamentale'),
+(11, 'Technologies', 'Innovation technologique'),
+(12, 'Médecine & Santé', 'Sciences médicales et santé'),
+(13, 'Sciences Environnementales', 'Étude de l''environnement'),
+(14, 'Entrepreneuriat', 'Création et gestion d''entreprise'),
+(15, 'Finance', 'Gestion financière et investissement'),
+(16, 'Marketing & Communication', 'Promotion et communication'),
+(17, 'Management', 'Gestion et leadership'),
+(18, 'Musique Solo', 'Artistes musicaux individuels'),
+(19, 'Groupes de Musique', 'Formations musicales'),
+(20, 'Course au Large', 'Compétitions nautiques'),
+(21, 'Sports d''Hiver', 'Sports de neige et de glace'),
+(22, 'Arts Culinaires', 'Gastronomie et pâtisserie'),
+(23, 'Histoire Militaire', 'Accomplissements militaires'),
+(24, 'Films & Productions', 'Œuvres cinématographiques'),
+(25, 'Grandes Fortunes', 'Patrimoine exceptionnel');
+
+-- LINKS
+INSERT INTO super_category_categories (super_category_id, category_id) VALUES
+(1, 8), (2, 8), (5, 8), (6, 8),
+(1, 9), (4, 9), (14, 9),
+(1, 10), (2, 10), (5, 10),
+(1, 11), (4, 11), (11, 11),
+(7, 14), (6, 14), (8, 14),
+(7, 15), (6, 15), (8, 15),
+(7, 18), (5, 18), (8, 18), (9, 18),
+(7, 19), (5, 19), (8, 19), (9, 19),
+(7, 21), (8, 21), (11, 21),
+(7, 22), (8, 22), (11, 22),
+(7, 24), (5, 24), (9, 24),
+(7, 25), (5, 25), (9, 25),
+(1, 33), (2, 33), (5, 33), (16, 33),
+(1, 4), (4, 4), (11, 4),
+(7, 13), (6, 13), (8, 13),
+(7, 17), (5, 17), (8, 17), (9, 17),
+(19, 35), (4, 35), (14, 35),
+(18, 37), (14, 37), (8, 37),
+(1, 6), (2, 6), (5, 6), (6, 6), (9, 6),
+(7, 23), (5, 23), (9, 23),
+(7, 32), (5, 32), (8, 32), (9, 32),
+(1, 38), (20, 38), (4, 38),
+(7, 12), (6, 12), (8, 12),
+(7, 20), (8, 20), (11, 20),
+(17, 40), (13, 40),
+(17, 39), (13, 39),
+(1, 34), (2, 34), (6, 34), (16, 34),
+(7, 29), (5, 29), (9, 29), (8, 29),
+(10, 26), (11, 26), (4, 26),
+(1, 28), (4, 28), (5, 28), (3, 28),
+(7, 16), (5, 16), (8, 16), (9, 16),
+(1, 7), (2, 7), (5, 7), (3, 7),
+(1, 1), (4, 1), (5, 1),
+(1, 3), (4, 3), (5, 3),
+(19, 36), (4, 36),
+(1, 2), (4, 2), (5, 2),
+(7, 30), (5, 30), (9, 30), (21, 30),
+(7, 31), (5, 31), (9, 31), (21, 31),
+(1, 5), (2, 5), (3, 5), (5, 5), (6, 5),
+(7, 27), (5, 27), (8, 27), (9, 27);
+
+INSERT INTO category_groups (category_id, group_id) VALUES
+(1, 1), (2, 1), (3, 1), (4, 1),
+(5, 2), (6, 2), (7, 2), (8, 2),
+(9, 3), (10, 3), (11, 3),
+(12, 5), (13, 5), (14, 5), (15, 5),
+(16, 7), (17, 7), (18, 7), (19, 7),
+(20, 8), (21, 8), (22, 8),
+(23, 9), (24, 9), (25, 9),
+(26, 11), (27, 20), (28, 4), (29, 6),
+(30, 21), (31, 21), (32, 7),
+(33, 18), (34, 19), (35, 22), (36, 22),
+(37, 23), (38, 24), (39, 25), (40, 25);
