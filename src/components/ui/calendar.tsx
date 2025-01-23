@@ -7,6 +7,9 @@ export function Calendar({
   showOutsideDays = true,
   ...props
 }: DayPickerProps) {
+  // Get current year dynamically
+  const currentYear = new Date().getFullYear();
+
   return (
     <DayPicker
       locale={fr}
@@ -41,8 +44,8 @@ export function Calendar({
       }}
       captionLayout="dropdown"
       {...props}
-      // fromYear={1900}
-      // toYear={2025}
+      fromYear={1250}
+      toYear={currentYear}
     />
   );
 }
