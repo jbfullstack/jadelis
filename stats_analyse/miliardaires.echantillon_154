@@ -1,0 +1,53 @@
+Dans l'échantillon de 154 personnes :
+
+Number 28: 11 personnes (7.14%)
+Number 11: 18 personnes (11.69%)
+Number 33: 30 personnes (19.48%)
+Number 22: 9 personnes (5.84%)
+Number 8: 12 personnes (7.79%)
+
+Comparons avec les probabilités théoriques :
+
+Number 28: 5.48% théorique vs 7.14% observé → +30% plus élevé
+Number 11: 8.75% théorique vs 11.69% observé → +34% plus élevé
+Number 33: 4.82% théorique vs 19.48% observé → +304% plus élevé !
+Number 22: 2.93% théorique vs 5.84% observé → +99% plus élevé
+Number 8: 11.11% théorique vs 7.79% observé → -30% plus bas
+
+Observations remarquables :
+
+La surreprésentation la plus frappante est le nombre 33 :
+
+Il devrait y avoir environ 7-8 personnes avec ce nombre (4.82% de 154)
+Il y en a 30, soit près de 4 fois plus !
+
+
+Tous les nombres maîtres sont surreprésentés :
+
+11: +34% plus fréquent que la normale
+22: deux fois plus fréquent que la normale
+28: +30% plus fréquent que la normale
+33: plus de 4 fois plus fréquent que la normale
+
+
+Pour les jours de naissance :
+
+Né le 8: 4 personnes sur 154 (2.6%) vs 3.3% théorique (1/30) → Normal
+Né le 28: 4 personnes sur 154 (2.6%) vs 3.3% théorique (1/30) → Normal
+
+
+
+En résumé :
+
+La "bizarrerie" statistique la plus significative est la surreprésentation massive du nombre 33
+Tous les nombres maîtres (11, 22, 28, 33) sont surreprésentés, ce qui est statistiquement improbable par hasard
+Le nombre 8, qui n'est pas un nombre maître, est sous-représenté
+Les jours de naissance ne montrent pas d'anomalie statistique significative
+
+Cette distribution est clairement décalée par rapport à la loi normale attendue, particulièrement pour le nombre 33 qui présente une anomalie statistique très significative.
+La proportion de nombres maîtres dans votre échantillon est effectivement beaucoup plus élevée que dans la population générale :
+
+Population générale : environ 22% de nombres maîtres
+Votre échantillon : environ 44% de nombres maîtres (68 sur 154)
+
+C'est exactement le double de ce qu'on devrait observer par hasard !

@@ -78,6 +78,50 @@ export default function CategoryPage() {
     }
   }
 
+  // Fonction pour recalculer tous les nombres
+  async function handleRecalculateAll() {
+    if (!confirm("Recalculer tous les nombres ?")) return;
+
+    try {
+      const res = await fetch("/api/person/recalculate-all", {
+        method: "POST",
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        alert(`${data.updatedCount} nombres ont été recalculés !`);
+        refetchCategories(); // Rafraîchir la liste si nécessaire
+      } else {
+        alert("Échec du recalcul : " + data.error);
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Une erreur est survenue lors du recalcul");
+    }
+  }
+
+  // Fonction pour recalculer les nombres manquants
+  async function handleRecalculateMissing() {
+    if (!confirm("Recalculer les nombres manquants ?")) return;
+
+    try {
+      const res = await fetch("/api/person/recalculate-missing", {
+        method: "POST",
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        alert(`${data.updatedCount} nombres manquants ont été recalculés !`);
+        refetchCategories(); // Rafraîchir la liste si nécessaire
+      } else {
+        alert("Échec du recalcul : " + data.error);
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Une erreur est survenue lors du recalcul");
+    }
+  }
+
   return (
     <div
       style={{
@@ -98,21 +142,62 @@ export default function CategoryPage() {
       >
         <h1 style={{ marginTop: 0 }}>Categories (Grouped by SuperCategory)</h1>
 
-        <div style={{ padding: "2rem" }}>
-          <button
-            type="submit"
-            style={{
-              background: "#207020",
-              color: "#fff",
-              border: "none",
-              padding: "0.5rem 1rem",
-              borderRadius: 4,
-              cursor: "pointer",
-            }}
-            onClick={() => handleNavigation("/supercategory")}
-          >
-            ➢ Super Categories
-          </button>
+        <div
+          style={{
+            padding: "2rem",
+            display: "flex",
+            flexDirection: "column",
+            gap: "1rem",
+          }}
+        >
+          {/* Premier bouton sur sa propre ligne */}
+          <div>
+            <button
+              type="submit"
+              style={{
+                background: "#207020",
+                color: "#fff",
+                border: "none",
+                padding: "0.5rem 1rem",
+                borderRadius: 4,
+                cursor: "pointer",
+              }}
+              onClick={() => handleNavigation("/supercategory")}
+            >
+              ➢ Super Categories
+            </button>
+          </div>
+
+          {/* Les deux nouveaux boutons sur la même ligne */}
+          <div style={{ display: "flex", gap: "1rem" }}>
+            <button
+              onClick={handleRecalculateAll}
+              style={{
+                background: "#704020",
+                color: "#fff",
+                border: "none",
+                padding: "0.5rem 1rem",
+                borderRadius: 4,
+                cursor: "pointer",
+              }}
+            >
+              Recalculer tous les nombres
+            </button>
+
+            <button
+              onClick={handleRecalculateMissing}
+              style={{
+                background: "#602040",
+                color: "#fff",
+                border: "none",
+                padding: "0.5rem 1rem",
+                borderRadius: 4,
+                cursor: "pointer",
+              }}
+            >
+              Recalculer les nombres manquants
+            </button>
+          </div>
         </div>
 
         {/* Create form */}

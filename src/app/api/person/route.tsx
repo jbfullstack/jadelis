@@ -123,12 +123,32 @@ export async function GET(request: Request) {
       valueIndex++;
     }
 
+    let hasNumberOrDayFilter = false;
+    let numberDayCondition = "";
+
     // Numbers filter
     if (params.has("numbers")) {
       const numbers = params.get("numbers")!.split(",").map(Number);
-      query += ` AND p.number = ANY($${valueIndex}::int[])`;
+      numberDayCondition += ` p.number = ANY($${valueIndex}::int[])`;
       values.push(numbers);
       valueIndex++;
+      hasNumberOrDayFilter = true;
+    }
+
+    // Days filter
+    if (params.has("birthDays")) {
+      if (hasNumberOrDayFilter) {
+        numberDayCondition += " OR";
+      }
+      numberDayCondition += ` EXTRACT(DAY FROM p.birth_date) = $${valueIndex}`;
+      values.push(Number(params.get("birthDays")));
+      valueIndex++;
+      hasNumberOrDayFilter = true;
+    }
+
+    // Ajouter la condition combinée si elle existe
+    if (hasNumberOrDayFilter) {
+      query += ` AND (${numberDayCondition})`;
     }
 
     // Moral person filter
